@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Job Desk — Visual Guide</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #020617; color: #e2e8f0; font-family: system-ui, sans-serif; }
+    .stage {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      place-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+    img {
+      max-width: min(1280px, 100%);
+      max-height: calc(100vh - 88px);
+      width: auto;
+      height: auto;
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      background: #0b1220;
+    }
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: min(1280px, 100%);
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+    button.primary { background: #0284c7; color: #fff; }
+    .meta { color: #94a3b8; font-size: 14px; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <img id="slide" alt="Job Desk guide slide" />
+    <div class="bar">
+      <button id="prev" type="button">← Prev</button>
+      <button id="next" class="primary" type="button">Next →</button>
+      <span class="meta" id="label"></span>
+      <span class="meta">GitHub: <a href="https://github.com/wlddrick/open-job-desk">wlddrick/open-job-desk</a></span>
+    </div>
+  </div>
+  <script>
+    const BASE = 'https://cdn.jsdelivr.net/gh/wlddrick/open-job-desk@master/docs/guide-assets/frames/';
+    const titles = [
+      '01 Start here',
+      '02 Install',
+      '03 Your details',
+      '04 Chrome fill',
+      '05 Daily loop',
+      '06 Architecture',
+      '07 Troubleshoot',
+      '08 Links'
+    ];
+    let i = 0;
+    const img = document.getElementById('slide');
+    const label = document.getElementById('label');
+    function show(n) {
+      i = (n + titles.length) % titles.length;
+      img.src = BASE + 'frame-0' + (i + 1) + '.png';
+      label.textContent = titles[i] + ' · ' + (i + 1) + ' / 8 · ← → keys';
+    }
+    document.getElementById('prev').onclick = () => show(i - 1);
+    document.getElementById('next').onclick = () => show(i + 1);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(i + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(i - 1); }
+    });
+    show(0);
+  </script>
+</body>
+</html>
