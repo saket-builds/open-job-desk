@@ -1,20 +1,39 @@
 # Job Desk — Simple Guide
 
-Job Desk is a personal board that helps you find Applied AI jobs, decide which ones to apply to, and fill in your details faster on company sites.
+Job Desk is a **personal job-hunt board** for any kind of work — teaching, nursing, design, sales, software, and more.
 
-You always click **Submit** yourself. Job Desk never sends an application for you.
+It helps you:
+
+1. Find roles from company career pages  
+2. Decide which ones to apply to  
+3. Fill your saved details faster on company sites  
+
+**You always click Submit yourself.** Job Desk never sends an application for you.
 
 **Get the app:** https://github.com/saket-builds/open-job-desk
 
 ---
 
+## Who this is for
+
+You do **not** need to be a programmer to use Job Desk day to day.
+
+- **Most people:** run it on your own laptop (recommended).  
+- **Optional:** put it online with a free Vercel account so you can open it from any browser.  
+- If a step says “ask a technical friend,” that part is usually a **one-time setup** — after that, everything is clicks.
+
+The demo person in the app is fictional **Jordan Lee**. Replace that with **your** details before you apply anywhere.
+
+---
+
 ## In plain words
 
-1. Job Desk finds roles from company career pages (Greenhouse, Ashby, Lever).  
-2. You review them on your desk and approve the ones you want.  
-3. On the company apply page, a small Chrome helper can fill your saved details.  
-4. You attach your résumé, answer any extra questions, and click Submit.  
-5. You mark the job as submitted on your desk so you can track it.
+1. Job Desk looks at company career boards (Greenhouse, Ashby, Lever).  
+2. You review roles on three tabs: **To review** → **Applying now** → **History**.  
+3. Colored **pills** on each role show skill matches (see below).  
+4. On Greenhouse apply pages, a small Chrome helper can type your saved facts.  
+5. You attach your résumé, answer extra questions, and click **Submit**.  
+6. Back on Job Desk you mark **I submitted** and track replies.
 
 > ✅ **You do:** Click Submit on the employer’s site  
 > ⛔ **Job Desk never:** Scrapes LinkedIn or auto-submits forms
@@ -25,17 +44,24 @@ You always click **Submit** yourself. Job Desk never sends an application for yo
 
 You’ll need:
 
-- A computer with **Chrome**
-- **Node.js 20 or newer** (free — ask a friend who’s technical if you’re unsure how to install it)
-- About 10 minutes for the first setup
+- A computer (Windows, Mac, or Linux)  
+- **Google Chrome**  
+- About **15–20 minutes** the first time  
+- Your résumé as a **PDF**  
+- Optional: a free [Vercel](https://vercel.com) account if you want Job Desk online  
+
+For the laptop setup you’ll also need **Node.js 20+** (free). If that sounds scary, ask a friend for the install step only — the rest of this guide is click-through.
 
 ---
 
-## Step 1 — Open Job Desk on your computer
+## Step 1 — Open Job Desk on your laptop (recommended)
 
-1. Download the project from GitHub (green **Code** button → **Download ZIP**, or clone if you know how).  
-2. Open a terminal in that folder.  
-3. Run these commands one by one:
+1. Open the project page: https://github.com/saket-builds/open-job-desk  
+2. Click the green **Code** button → **Download ZIP**.  
+3. Unzip the folder somewhere easy to find (for example your Desktop).  
+4. Ask a technical friend (or follow Node’s own install site) to install **Node.js 20 or newer**.  
+5. Open a terminal / PowerShell **inside** the unzipped folder.  
+6. Run these three lines, one at a time:
 
 ```bash
 npm install
@@ -43,27 +69,46 @@ cp .env.example .env.local
 npm run dev
 ```
 
-4. In Chrome, open: http://localhost:3000
+On Windows PowerShell, if `cp` fails, use:
 
-You should see your Job Desk home screen.
+```powershell
+Copy-Item .env.example .env.local
+```
+
+7. In Chrome, open: http://localhost:3000  
+
+You should see Job Desk with tabs like **To review**, **Applying now**, and **History**.
 
 ![Desk running locally](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/terminal-dev.png)
 
-> 💡 **Stuck on this step?** Ask someone technical to help install Node and run those three commands. The rest of this guide is click-through.
+> 💡 **Stuck here?** Hand this Step 1 to someone technical. Once `http://localhost:3000` opens, you can finish everything else yourself.
 
 ---
 
-## Step 2 — Put in your details
+## Step 2 — Make it *your* job hunt (any sector)
 
-The demo person is **Jordan Lee**. Replace that with *your* information.
+Open **Your details**. The demo is Jordan Lee — change it.
 
-1. Open **Your details**  
-2. Fill in your name, email, phone, work history, and salary text  
-3. Tap **Save**  
-4. Copy your **fill token** (a private code that unlocks your saved facts)  
-5. Download **job-desk-fill-helper.zip**
+### A. Your facts
 
-> 💡 **Tip:** The fill token only lets the helper read your facts. It does **not** submit any form.
+1. Edit name, email, phone, location, work authorization.  
+2. Upload your résumé PDF (**Upload PDF**).  
+3. Edit the **application packet** (work history, education, salary / CTC text).  
+4. Tap **Save**, then copy your **fill token**.  
+5. Download **job-desk-fill-helper.zip**.
+
+### B. Your targeting (this is how non-AI careers work)
+
+Still on **Your details**, find **Targeting** / discovery settings:
+
+1. Set **skills** to words from *your* résumé (Excel, ICU, Figma, Python, classroom management…).  
+2. Set **role families** and **locations** you actually want.  
+3. For careers that are **not** Applied AI, turn on **Open title matching** (or clear the strict AI title rules) so more titles can appear.  
+4. Set **home location** patterns for *your* city / country (the demo defaults to India / Bangalore / open remote).  
+5. Optionally add extra company boards, or leave the built-in list.  
+6. Save targeting.
+
+> 💡 **Tip:** Green and amber pills later compare the job’s must-haves to the **skills list** you save here. Put real résumé skills in that box.
 
 ![Your details screen](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/desk-your-details.png)
 
@@ -71,83 +116,140 @@ The demo person is **Jordan Lee**. Replace that with *your* information.
 
 ## Step 3 — Add the Chrome helper
 
-This is a small add-on that shows a dark bar on Greenhouse apply pages.
+This small add-on shows a dark bar on Greenhouse apply pages.
 
-1. Unzip **job-desk-fill-helper.zip** somewhere easy to find  
+1. Unzip **job-desk-fill-helper.zip** somewhere easy to find.  
 2. In Chrome, open `chrome://extensions`  
-3. Turn **Developer mode** on (top right)  
-4. Click **Load unpacked** and choose the unzipped folder  
-5. Open the extension popup  
-6. Paste your Job Desk address (usually `http://localhost:3000`) and your fill token  
-7. Click **Save**
+3. Turn **Developer mode** on (top right).  
+4. Click **Load unpacked** → choose the unzipped folder.  
+5. Open the extension popup.  
+6. Job desk URL: `http://localhost:3000` (or your online URL later).  
+7. Paste your **fill token** → **Save**.
 
 ![Extension settings](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/ext-popup.png)
 
----
-
-## Step 4 — Fill an application (you still submit)
-
-1. From your desk, open a job you approved (or open a Greenhouse apply link)  
-2. Look for the dark bar → click **Fill from résumé**  
-3. Attach your résumé PDF yourself  
-4. Answer company-specific or EEO questions yourself  
-5. **You** click **Submit** on the company site  
-6. Back on Job Desk, mark **I submitted**
-
-![Fill helper bar on an apply page](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/ext-bar.png)
-
-> ⚠️ **Bar appears then disappears?** Reload the fill helper (version **1.0.1** or newer) and refresh the page.
+> 💡 The fill token only lets the helper **read** your facts. It does **not** submit any form.
 
 ---
 
-## Step 5 — Your everyday routine
+## Step 4 — Understand the new job board UI
 
-1. Tap **Find new jobs**  
-2. Look at the **To review** list  
-3. **Approve** roles you like  
-4. Open the posting → use Fill when it’s Greenhouse  
-5. Submit yourself → mark **I submitted** → track replies
+On the home page you’ll see three tabs:
 
-You can also paste a Greenhouse / Ashby / Lever job link with **Add this job**.  
-(LinkedIn links are not supported.)
+| Tab | Meaning |
+| --- | --- |
+| **To review** | New roles waiting for your yes / no |
+| **Applying now** | Roles you approved — go apply on the company site |
+| **History** | Roles you already submitted (track Interview / Offer / Closed) |
 
-![To review list](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/desk-to-review.png)
+### Colored skill pills
+
+On each role card:
+
+- **Green pill** = that skill looks like it’s already on your résumé / skills list  
+- **Amber (yellow) pill** = the job asks for it — **check** before you claim it on the form  
+
+There’s also a **Fit** number (higher ≈ closer match to your targeting). Treat it as a hint, not a rule.
+
+A **Before you apply** tip box reminds you to attach your PDF and confirm remote roles hire in your locations.
+
+![To review list with pills](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/desk-to-review.png)
 
 ---
 
-## Which jobs stay, which get dropped
+## Step 5 — Everyday job hunt
 
-Job Desk prefers roles that fit India-based / open remote work.
+1. Tap **Find new jobs** (or wait for the daily search if you deploy online).  
+2. Open **To review**.  
+3. Read the pills and tips → **Yes, I want to apply** or **Skip this one**.  
+4. Go to **Applying now** → open the posting.  
+5. On Greenhouse: dark bar → **Fill from résumé**.  
+6. Attach your PDF yourself → answer company questions yourself → **you** click Submit.  
+7. Back on Job Desk → **I submitted** → later update **History** when you hear back.
 
-> ✅ **Usually kept:** India-friendly or clearly open remote  
-> ⛔ **Usually dropped:** Must move abroad, or US/UK/EU residency required  
+### Found a job somewhere else?
 
-If a remote job never mentions India, treat it as **unclear** — check the posting before you apply.
+Paste a Greenhouse / Ashby / Lever link in **Add this job**.
+
+- Normal add: respects your discovery filters.  
+- Check **Force add** if the job was filtered out but you still want it on the desk.  
+
+LinkedIn links are **not** supported.
+
+![Fill helper bar](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/ext-bar.png)
+
+---
+
+## Step 6 — Put Job Desk online (optional, free)
+
+Use this if you want Job Desk on your phone or another computer. **Laptop-only is enough** for a normal search.
+
+### Easiest path for non-technical people
+
+Ask a technical friend for **about 20 minutes** to:
+
+1. Create a free [Vercel](https://vercel.com) account  
+2. Import **saket-builds/open-job-desk** (or your fork)  
+3. Add two settings (env vars):  
+   - `BLOB_READ_WRITE_TOKEN` (create a Blob store in Vercel — needed so your details and jobs don’t disappear)  
+   - `CRON_SECRET` (any long random password — protects the daily auto-search)  
+4. Deploy  
+5. Tell you the `https://….vercel.app` link  
+
+Then **you**:
+
+1. Open that link in Chrome  
+2. Fill **Your details** again (online storage is separate from your laptop)  
+3. In the Chrome helper, change Job desk URL to the Vercel link and paste the fill token  
+
+> ⚠️ **Privacy:** Job Desk has **no login**. Anyone with your live link can see and change your desk. Keep the URL private (bookmark it; don’t post it publicly) or put access control in front of it.
+
+### Prefer to do Vercel yourself?
+
+1. Sign up at vercel.com with GitHub.  
+2. **Add New Project** → import `open-job-desk`.  
+3. Create a **Blob** store and copy `BLOB_READ_WRITE_TOKEN` into Project → Settings → Environment Variables.  
+4. Add `CRON_SECRET` (make one up; long and random).  
+5. Deploy.  
+6. Open the URL → complete **Your details** → update the Chrome helper URL.
+
+---
+
+## Which jobs stay or get dropped?
+
+That depends on **your** targeting — not only on the demo defaults.
+
+Demo defaults keep **India / Bangalore** and **open remote**, and look for Applied AI–style titles.
+
+For another country or sector:
+
+1. Change home-location rules on **Your details**  
+2. Turn on **Open title matching** or edit title rules  
+3. Use **Force add** for one-off roles  
+
+If a remote job never mentions your market, treat it as **unclear** — read the posting before you apply.
 
 ---
 
 ## If something goes wrong
 
 **“Invalid fill token”**  
-Copy the token again from **Your details**, paste it in the extension, and Save.
+Copy the token again from **Your details** → paste in the extension → Save.
 
 **No dark bar on the apply page**  
-The helper mainly works on Greenhouse apply pages (`job-boards.greenhouse.io` or `boards.greenhouse.io`).
+The helper mainly works on Greenhouse (`job-boards.greenhouse.io` or `boards.greenhouse.io`). For Ashby / Lever, fill the form yourself.
 
 **Bar vanishes quickly**  
-Use fill helper **v1.0.1+**, then refresh the page.
+Use fill helper **v1.0.1+**, reload the extension, refresh the page.
 
 **Filled 0 fields**  
-Scroll down to the form, then click Fill again.
+Scroll to the form, click Fill again.
 
 **To review is empty**  
-Tap **Find new jobs**. If it’s still empty, the career boards may be down — try again later.
+Tap **Find new jobs**. Check targeting (open titles / locations). Or **Force add** a URL you already have.
 
----
-
-## Putting Job Desk online (optional)
-
-Want it on the internet instead of only on your computer? Ask a technical friend to deploy the GitHub project on **Vercel** and point the Chrome helper at that web address. You don’t need this for daily use on your own laptop.
+**npm / Node errors on Step 1**  
+Ask a technical friend — this is the only “install tools” step.
 
 ---
 
@@ -166,7 +268,7 @@ Use Job Desk for **your own** applications. Respect company rules. Don’t spam 
 ### Short message you can share
 
 ```text
-Here's Job Desk — a personal board to find AI roles, approve ones you like, and fill Greenhouse forms faster. You always submit yourself.
+Here's Job Desk — a personal board for any job sector. Find roles, approve the ones you like, and fill Greenhouse forms faster. You always submit yourself.
 
 Guide: https://saket-affine.duckdns.org/guides/job-desk/
 GitHub: https://github.com/saket-builds/open-job-desk

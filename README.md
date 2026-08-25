@@ -1,6 +1,6 @@
 # Job Desk
 
-Open-source personal job-search desk: discover Applied AI roles from Greenhouse / Ashby / Lever boards, review and approve them yourself, then apply on the company site. A Chrome helper can fill résumé facts on Greenhouse forms — **it never clicks Submit**.
+Open-source personal job-search desk for **any sector**: discover roles from Greenhouse / Ashby / Lever boards, review and approve them yourself, then apply on the company site. A Chrome helper can fill résumé facts on Greenhouse forms — **it never clicks Submit**.
 
 Built as a founder-led side project. The repo ships with a **fictional demo profile (Jordan Lee)** so you can fork and replace it with your own details.
 
@@ -21,7 +21,7 @@ Built as a founder-led side project. The repo ships with a **fictional demo prof
 
 ## Visual guide
 
-Present walkthrough (8 slides, arrow keys): https://saket-builds.github.io/open-job-desk/guide-assets/present.html
+Friendly plain-language guide (any sector): https://saket-affine.duckdns.org/guides/job-desk/
 
 ## Quick start
 

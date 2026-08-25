@@ -2,26 +2,27 @@
 
 This is the shareable how-to for forks. Replace demo **Jordan Lee** data with your own on **Your details**.
 
-## Friendly guide (AFFiNE)
+## Friendly guide (for everyone)
 
-Non-technical walkthrough (plain language):  
+Plain-language walkthrough (any sector, non-technical steps):  
 https://saket-affine.duckdns.org/guides/job-desk/
 
-Editable Page doc (same workspace):  
+Editable Page twin:  
 https://saket-affine.duckdns.org/workspace/9ad0bc25-ba8b-493e-a5fb-cd2fdfeb7cf7/UZA8pYVa8tFTrKF0a6ymo?mode=page
 
-Source: [`AFFINE-PAGE-GUIDE.md`](./AFFINE-PAGE-GUIDE.md).
+Source of truth: [`AFFINE-PAGE-GUIDE.md`](./AFFINE-PAGE-GUIDE.md).
 
 ## What this is
 
-A personal job-search desk (demo defaults: Applied AI / GenAI):
+A personal job-search desk for **any sector** (demo defaults: Applied AI + India / open remote):
 
 1. Discovers jobs from Greenhouse, Ashby, and Lever boards  
-2. You approve roles on the desk  
-3. You apply on the company site (Chrome helper can fill Greenhouse facts)  
-4. You mark **I submitted** and track outcomes  
+2. You review on **To review** → **Applying now** → **History**  
+3. Green / amber skill pills show résumé matches vs JD asks  
+4. You apply on the company site (Chrome helper can fill Greenhouse facts)  
+5. You mark **I submitted** and track outcomes  
 
-Nothing is auto-submitted to employers. Change titles, geo rules, skills, and boards on **Your details** for any sector.
+Nothing is auto-submitted. Change skills, titles, geo rules, and boards on **Your details**.
 
 ## What it does not do
 
@@ -31,11 +32,11 @@ Nothing is auto-submitted to employers. Change titles, geo rules, skills, and bo
 
 ## Prerequisites
 
-- Node.js 20+  
+- Node.js 20+ (ask a friend if needed — one-time)  
 - Chrome (for the fill helper)  
 - Optional: Vercel account + Blob store for a hosted desk  
 
-After clone, open **Your details** to replace the Jordan Lee demo, set targeting for your sector/locations, and upload a résumé PDF. Use **Force add** when pasting a job URL that discovery would otherwise filter.
+After clone, open **Your details** to replace the Jordan Lee demo, set targeting for your sector/locations, upload a résumé PDF, and copy the fill token. Use **Force add** when pasting a job URL that discovery would otherwise filter.
 
 ## Install and run locally
 
@@ -52,9 +53,9 @@ Open http://localhost:3000
 ### First-time setup on the desk
 
 1. Go to **Your details**  
-2. Edit **Your targeting** (skills, locations, title regexes, open-title mode, boards) and save  
+2. Edit **Candidate facts** + **Targeting** (skills, open-title mode, home markets, boards) and save  
 3. Upload your résumé PDF  
-4. Edit the application packet (name, email, phone, work history, CTC text, etc.) and save  
+4. Edit the application packet and save  
 5. Copy the **fill token**  
 6. Download **job-desk-fill-helper.zip** (or use `chrome-extension/` after `npm run pack:fill`)
 
@@ -76,7 +77,7 @@ If the dark bar flashes then vanishes, you are on an old extension build — loa
 
 ```text
 Find new jobs (or daily cron)
-    → To review → Approve or Skip
+    → To review (read green/amber pills) → Approve or Skip
     → Applying now → Open posting
     → Fill from résumé (Greenhouse)
     → Attach PDF → Submit yourself
@@ -129,7 +130,7 @@ flowchart LR
 | No dark bar | Must be `job-boards.greenhouse.io` / `boards.greenhouse.io` |
 | Bar vanishes | Reload extension 1.0.1+ |
 | Filled 0 fields | Scroll to the form; click Fill again |
-| Empty To review | Tap Find new jobs; check portal boards still resolve |
+| Empty To review | Tap Find new jobs; check targeting / Force add |
 
 ## Ethics
 
@@ -139,12 +140,10 @@ Use this for **your own** applications. Respect employer and ATS terms. Do not s
 
 See [CREDITS.md](CREDITS.md) and [LICENSE](LICENSE) (MIT).
 
----
-
-### Instagram DM reply template (copy into your auto-replier)
+### Share blurb
 
 ```text
-Here's Job Desk — a personal board to find AI roles, approve ones you like, and fill Greenhouse forms faster. You always submit yourself.
+Here's Job Desk — a personal board for any job sector. Find roles, approve the ones you like, and fill Greenhouse forms faster. You always submit yourself.
 
 Guide: https://saket-affine.duckdns.org/guides/job-desk/
 GitHub: https://github.com/saket-builds/open-job-desk
