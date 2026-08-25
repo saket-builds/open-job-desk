@@ -21,12 +21,12 @@ Built as a founder-led side project. The repo ships with a **fictional demo prof
 
 ## Visual guide
 
-Present walkthrough (8 slides, arrow keys): https://wlddrick.github.io/open-job-desk/guide-assets/present.html
+Present walkthrough (8 slides, arrow keys): https://saket-builds.github.io/open-job-desk/guide-assets/present.html
 
 ## Quick start
 
 ```bash
-git clone https://github.com/wlddrick/open-job-desk.git
+git clone https://github.com/saket-builds/open-job-desk.git
 cd open-job-desk
 npm install
 cp .env.example .env.local

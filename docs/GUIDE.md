@@ -2,12 +2,15 @@
 
 This is the shareable how-to for forks. Replace demo **Jordan Lee** data with your own on **Your details**.
 
-## Visual guide (Present)
+## Friendly guide (AFFiNE)
 
-Slide walkthrough (arrow keys / Next):  
-https://wlddrick.github.io/open-job-desk/guide-assets/present.html
+Non-technical walkthrough (plain language):  
+https://saket-affine.duckdns.org/guides/job-desk/
 
-Composed frames live in [`docs/guide-assets/frames/`](./guide-assets/frames/). Layout checklist: [`EDGELESS-FRAMES.md`](./EDGELESS-FRAMES.md).
+Editable Page doc (same workspace):  
+https://saket-affine.duckdns.org/workspace/9ad0bc25-ba8b-493e-a5fb-cd2fdfeb7cf7/UZA8pYVa8tFTrKF0a6ymo?mode=page
+
+Source: [`AFFINE-PAGE-GUIDE.md`](./AFFINE-PAGE-GUIDE.md).
 
 ## What this is
 
@@ -35,7 +38,7 @@ Nothing is auto-submitted to employers.
 ## Install and run locally
 
 ```bash
-git clone https://github.com/wlddrick/open-job-desk.git
+git clone https://github.com/saket-builds/open-job-desk.git
 cd open-job-desk
 npm install
 cp .env.example .env.local
@@ -133,8 +136,8 @@ See [CREDITS.md](CREDITS.md) and [LICENSE](LICENSE) (MIT).
 ### Instagram DM reply template (copy into your auto-replier)
 
 ```text
-Here's Job Desk — an open-source personal job desk (scan AI roles, approve, fill Greenhouse facts; you always submit yourself).
+Here's Job Desk — a personal board to find AI roles, approve ones you like, and fill Greenhouse forms faster. You always submit yourself.
 
-Guide: https://wlddrick.github.io/open-job-desk/guide-assets/present.html
-GitHub: https://github.com/wlddrick/open-job-desk
+Guide: https://saket-affine.duckdns.org/guides/job-desk/
+GitHub: https://github.com/saket-builds/open-job-desk
 ```
