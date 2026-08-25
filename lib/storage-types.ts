@@ -3,6 +3,8 @@ import type {
   DeskStatus,
   LedgerEntry,
   PipelineJob,
+  ProfileSummary,
+  ResumeInfo,
 } from "./types";
 
 export type DeskStatusFilter = DeskStatus | "all";
@@ -12,6 +14,8 @@ export interface AppState {
   ledger: LedgerEntry[];
   packet?: ApplicationPacket;
   fillToken?: string;
+  profile?: ProfileSummary;
+  resume?: ResumeInfo;
 }
 
 export interface StorageAdapter {

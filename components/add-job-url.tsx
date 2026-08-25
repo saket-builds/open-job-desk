@@ -11,6 +11,7 @@ interface AddJobUrlProps {
 
 export function AddJobUrl({ onAdded }: AddJobUrlProps) {
   const [url, setUrl] = useState("");
+  const [force, setForce] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export function AddJobUrl({ onAdded }: AddJobUrlProps) {
       const res = await fetch("/api/jobs/import", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: trimmed }),
+        body: JSON.stringify({ url: trimmed, force }),
       });
       const data = (await res.json()) as {
         error?: string;
@@ -57,7 +58,7 @@ export function AddJobUrl({ onAdded }: AddJobUrlProps) {
   return (
     <form
       onSubmit={submit}
-      className="flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:items-start"
+      className="flex w-full max-w-2xl flex-col gap-2 sm:flex-row sm:items-start"
     >
       <div className="flex flex-1 flex-col gap-1">
         <Input
@@ -68,6 +69,16 @@ export function AddJobUrl({ onAdded }: AddJobUrlProps) {
           disabled={busy}
           className="h-9"
         />
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={force}
+            onChange={(event) => setForce(event.target.checked)}
+            disabled={busy}
+            className="size-3.5 accent-foreground"
+          />
+          Force add (skip title / location discovery filters)
+        </label>
         {error ? (
           <p className="text-xs text-destructive">{error}</p>
         ) : message ? (

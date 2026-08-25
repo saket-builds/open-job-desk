@@ -1,3 +1,4 @@
+import { discoveryPolicyFor, mentionsHomeMarket } from "./discovery-filters";
 import type { ClassifiedListing } from "./classify";
 import type { Gate, PipelineJob, ProfileSummary } from "./types";
 
@@ -14,9 +15,14 @@ export function scoreClassified(
   | "reasons"
   | "gaps"
 > {
+  const policy = discoveryPolicyFor(profile);
   const gates: Gate[] = [];
   const reasons: string[] = [];
   const gaps: string[] = [];
+  const homeLabel =
+    profile.targetLocations[0] ??
+    profile.discovery.homeLocationPatterns[0]?.replace(/\\b/g, "") ??
+    "home market";
 
   const excluded = (profile.excludedCompanies ?? []).some((name) =>
     listing.company.toLowerCase().includes(name.toLowerCase()),
@@ -24,7 +30,7 @@ export function scoreClassified(
   if (listing.eligibility === "ineligible" || excluded) {
     const gap = excluded
       ? "Company is excluded by the candidate."
-      : "Posting looks ineligible (US-only or work-auth mismatch).";
+      : "Posting looks ineligible for your location / work-auth rules.";
     gates.push({ name: "eligibility", status: "fail", reason: gap });
     return {
       score: 0,
@@ -41,8 +47,8 @@ export function scoreClassified(
     status: listing.eligibility === "eligible" ? "pass" : "ask",
     reason:
       listing.eligibility === "eligible"
-        ? "India / Bangalore / remote appears compatible."
-        : "Remote role — confirm it hires India-based employees.",
+        ? `Home market / location looks compatible (${homeLabel}).`
+        : "Remote role — confirm it hires people in your target locations.",
   });
   gates.push({
     name: "posting-status",
@@ -98,7 +104,8 @@ export function scoreClassified(
     (100 *
       listing.mustHaves.reduce(
         (sum, item) =>
-          sum + (item.status === "met" ? 1 : item.status === "partial" ? 0.5 : 0),
+          sum +
+          (item.status === "met" ? 1 : item.status === "partial" ? 0.5 : 0),
         0,
       )) /
       listing.mustHaves.length,
@@ -133,14 +140,37 @@ export function scoreClassified(
   reasons.push(`Seniority: ${listing.seniority}.`);
   score += Math.round(mustHaveCoverage * 0.4);
   reasons.push(`Skills evidence: ${mustHaveCoverage}% of must-haves.`);
-  if (listing.remote || listing.locations.some((place) => /bangalore|bengaluru|india|remote/i.test(place))) {
+
+  const locationMatch =
+    listing.remote ||
+    listing.locations.some((place) =>
+      mentionsHomeMarket(place, "", policy),
+    ) ||
+    profile.targetLocations.some((target) =>
+      listing.locations.some((place) =>
+        place.toLowerCase().includes(target.toLowerCase()),
+      ),
+    );
+  if (locationMatch) {
     score += 10;
-    reasons.push(listing.remote ? "Remote-compatible." : "Target location match.");
+    reasons.push(
+      listing.remote ? "Remote-compatible." : "Target location match.",
+    );
   } else {
-    gaps.push("Location is not an explicit Bangalore/India/remote match.");
+    gaps.push("Location is not an explicit target-location / remote match.");
   }
-  score += 5;
-  reasons.push("Industry: ai.");
+
+  const industry =
+    profile.industries.find((item) =>
+      `${listing.title} ${listing.description}`
+        .toLowerCase()
+        .includes(item.toLowerCase()),
+    ) ?? profile.industries[0];
+  if (industry) {
+    score += 5;
+    reasons.push(`Industry focus: ${industry}.`);
+  }
+
   gaps.push("Published compensation is unavailable or not directly comparable.");
 
   let experienceMismatch = false;
@@ -159,10 +189,11 @@ export function scoreClassified(
   }
 
   const finalScore = Math.min(score, 100);
-  const decision = finalScore >= profile.manualReviewMinScore ? "review" : "skip";
+  const decision =
+    finalScore >= profile.manualReviewMinScore ? "review" : "skip";
   const autoEligible =
     decision === "review" &&
-    ["senior", "staff"].includes(listing.seniority) &&
+    profile.seniority.includes(listing.seniority) &&
     !experienceMismatch &&
     listing.eligibility === "eligible" &&
     finalScore >= profile.autoSubmitMinScore &&

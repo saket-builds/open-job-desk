@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/copy-field";
 import type { ApplicationPacket, ProfileSummary } from "@/lib/types";
 import { PacketEditor } from "@/components/packet-editor";
+import { TargetingEditor } from "@/components/targeting-editor";
 
 interface ProfileResponse {
   check: { configured: boolean; missing: string[] };
@@ -18,8 +19,10 @@ interface ProfileResponse {
 export function ProfilePageClient() {
   const [data, setData] = useState<ProfileResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [resumeMsg, setResumeMsg] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
+  function load() {
     fetch("/api/profile")
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to load profile");
@@ -27,15 +30,44 @@ export function ProfilePageClient() {
       })
       .then(setData)
       .catch((err: Error) => setError(err.message));
+  }
+
+  useEffect(() => {
+    load();
   }, []);
+
+  async function onResumeSelected(file: File | null) {
+    if (!file) return;
+    setUploading(true);
+    setResumeMsg(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/resume", { method: "POST", body: form });
+      const body = (await res.json()) as {
+        resume?: ProfileResponse["resume"];
+        error?: string;
+      };
+      if (!res.ok) throw new Error(body.error ?? "Upload failed");
+      setResumeMsg("Résumé uploaded.");
+      setData((prev) =>
+        prev && body.resume ? { ...prev, resume: body.resume } : prev,
+      );
+    } catch (err) {
+      setResumeMsg(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border px-6 py-6">
         <h1 className="text-2xl font-semibold tracking-tight">Your details</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Confirm these facts once. The Chrome helper types them into Greenhouse
-          forms. You still attach the résumé PDF and click Submit yourself.
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+          Set your facts, targeting, and discovery rules for any job sector.
+          The Chrome helper fills Greenhouse forms from the application packet —
+          you still attach the résumé PDF and click Submit yourself.
         </p>
       </header>
 
@@ -46,85 +78,6 @@ export function ProfilePageClient() {
           <p className="text-sm text-muted-foreground">Loading profile…</p>
         ) : (
           <>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Candidate</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-2">
-                <CopyField label="Name" value={data.profile.name} />
-                <CopyField label="Email" value={data.profile.email} />
-                <CopyField label="Phone" value={data.profile.phone} />
-                <CopyField label="Location" value={data.profile.location} />
-                <CopyField
-                  label="Work authorization"
-                  value={data.profile.workAuthorization}
-                />
-                <CopyField
-                  label="Availability"
-                  value={data.profile.availability ?? "Immediate"}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Targeting</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {data.profile.roleFamilies.map((item) => (
-                    <Badge key={item} variant="outline">
-                      {item}
-                    </Badge>
-                  ))}
-                  {data.profile.seniority.map((item) => (
-                    <Badge key={item} variant="outline">
-                      {item}
-                    </Badge>
-                  ))}
-                  {data.profile.workModes.map((item) => (
-                    <Badge key={item} variant="outline">
-                      {item}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <CopyField
-                    label="Target locations"
-                    value={data.profile.targetLocations.join(", ")}
-                  />
-                  <CopyField
-                    label="Submission mode"
-                    value={data.profile.submissionMode}
-                  />
-                  <CopyField
-                    label="Years experience"
-                    value={String(data.profile.yearsExperience)}
-                  />
-                  <CopyField
-                    label="Auto-submit min score"
-                    value={String(data.profile.autoSubmitMinScore)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Compensation (CTC)</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <CopyField
-                  label="Current CTC (when asked)"
-                  value={data.profile.currentCompensation ?? ""}
-                />
-                <CopyField
-                  label="Expected CTC (when asked)"
-                  value={data.profile.targetCompensation ?? ""}
-                />
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Résumé</CardTitle>
@@ -139,8 +92,67 @@ export function ProfilePageClient() {
                       : ""}
                   </p>
                 ) : null}
+                <div className="flex flex-wrap items-center gap-3">
+                  <label
+                    className={`inline-flex h-7 cursor-pointer items-center rounded-lg border border-border px-2.5 text-[0.8rem] font-medium hover:bg-muted ${uploading ? "pointer-events-none opacity-50" : ""}`}
+                  >
+                    {uploading ? "Uploading…" : "Upload PDF"}
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(event) =>
+                        void onResumeSelected(event.target.files?.[0] ?? null)
+                      }
+                    />
+                  </label>
+                  {resumeMsg ? (
+                    <p className="text-sm text-muted-foreground">{resumeMsg}</p>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Current targeting snapshot</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {data.profile.roleFamilies.map((item) => (
+                    <Badge key={item} variant="outline">
+                      {item}
+                    </Badge>
+                  ))}
+                  {data.profile.seniority.map((item) => (
+                    <Badge key={`s-${item}`} variant="outline">
+                      {item}
+                    </Badge>
+                  ))}
+                  {data.profile.workModes.map((item) => (
+                    <Badge key={`w-${item}`} variant="outline">
+                      {item}
+                    </Badge>
+                  ))}
+                  {data.profile.discovery.openTitleMatching ? (
+                    <Badge variant="secondary">Open titles</Badge>
+                  ) : null}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Home markets:{" "}
+                  {data.profile.targetLocations.join(", ") || "not set"} · Edit
+                  rules below for non-AI sectors or other countries.
+                </p>
+              </CardContent>
+            </Card>
+
+            <TargetingEditor
+              initial={data.profile}
+              onSaved={(profile) =>
+                setData((prev) => (prev ? { ...prev, profile } : prev))
+              }
+            />
 
             {data.packet && data.fillToken ? (
               <PacketEditor

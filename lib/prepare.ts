@@ -12,7 +12,7 @@ const PREPAREABLE: PipelineJob["deskStatus"][] = [
 export async function prepareJob(job: PipelineJob): Promise<PipelineJob> {
   const profile = await getProfileSummary();
   const answers = buildApplicationAnswers(profile);
-  const knockouts = detectKnockouts(job);
+  const knockouts = detectKnockouts(job, profile);
   const blockers = [...knockouts];
 
   if (!job.autoEligible) {
@@ -29,10 +29,13 @@ export async function prepareJob(job: PipelineJob): Promise<PipelineJob> {
   };
 }
 
-export function shouldAutoPrepare(job: PipelineJob): boolean {
+export function shouldAutoPrepare(
+  job: PipelineJob,
+  manualReviewMinScore = 70,
+): boolean {
   return (
     PREPAREABLE.includes(job.deskStatus) &&
-    job.score >= 70 &&
+    job.score >= manualReviewMinScore &&
     job.decision !== "skip" &&
     job.decision !== "exclude"
   );
@@ -41,17 +44,18 @@ export function shouldAutoPrepare(job: PipelineJob): boolean {
 export async function autoPreparePipeline(
   jobs: PipelineJob[],
 ): Promise<PipelineJob[]> {
+  const profile = await getProfileSummary();
   const next: PipelineJob[] = [];
 
   for (const job of jobs) {
     if (job.deskStatus === "pending-approval") {
-      const knockouts = detectKnockouts(job);
+      const knockouts = detectKnockouts(job, profile);
       next.push({
         ...job,
         knockouts,
         blockers: [...new Set([...(job.blockers ?? []), ...knockouts])],
       });
-    } else if (shouldAutoPrepare(job)) {
+    } else if (shouldAutoPrepare(job, profile.manualReviewMinScore)) {
       next.push(await prepareJob(job));
     } else {
       next.push(job);

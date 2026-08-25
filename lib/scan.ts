@@ -1,9 +1,9 @@
 import {
   passesListStage,
   passesPostJdFilter,
-  PORTALS,
-  type Portal,
-} from "./portals";
+  type DiscoveryPolicy,
+} from "./discovery-filters";
+import { DEFAULT_PORTALS, type Portal } from "./portals";
 
 export interface ScannedListing {
   title: string;
@@ -60,7 +60,10 @@ export async function enrichGreenhouse(
   return { ...listing, description: stripHtml(json.content).slice(0, 8_000) };
 }
 
-async function fetchGreenhouse(portal: Portal): Promise<ScannedListing[]> {
+async function fetchGreenhouse(
+  portal: Portal,
+  policy?: DiscoveryPolicy,
+): Promise<ScannedListing[]> {
   const json = (await fetchJson(
     `https://boards-api.greenhouse.io/v1/boards/${portal.board}/jobs`,
   )) as {
@@ -75,12 +78,12 @@ async function fetchGreenhouse(portal: Portal): Promise<ScannedListing[]> {
   return jobs
     .filter((job) => job.absolute_url)
     .filter((job) =>
-      passesListStage(job.title ?? "", job.location?.name ?? ""),
+      passesListStage(job.title ?? "", job.location?.name ?? "", policy),
     )
     .map((job) => ({
       title: job.title ?? "",
       company: portal.name,
-      url: job.absolute_url as string,
+      url: job.absolute_url!,
       source: "greenhouse" as const,
       location: job.location?.name ?? "",
       description: "",
@@ -88,10 +91,12 @@ async function fetchGreenhouse(portal: Portal): Promise<ScannedListing[]> {
     }));
 }
 
-async function fetchAshby(portal: Portal): Promise<ScannedListing[]> {
+async function fetchAshby(
+  portal: Portal,
+  policy?: DiscoveryPolicy,
+): Promise<ScannedListing[]> {
   const json = (await fetchJson(
     `https://api.ashbyhq.com/posting-api/job-board/${portal.board}`,
-    15_000,
   )) as {
     jobs?: Array<{
       id?: string;
@@ -102,14 +107,15 @@ async function fetchAshby(portal: Portal): Promise<ScannedListing[]> {
       descriptionPlain?: string;
     }>;
   } | null;
-  const jobs = json?.jobs ?? [];
-  return jobs
-    .filter((job) => job.jobUrl)
-    .filter((job) => passesListStage(job.title ?? "", job.location ?? ""))
+  return (json?.jobs ?? [])
+    .filter((job) => job.jobUrl && job.title)
+    .filter((job) =>
+      passesListStage(job.title ?? "", job.location ?? "", policy),
+    )
     .map((job) => ({
-      title: job.title ?? "",
+      title: job.title!,
       company: portal.name,
-      url: job.jobUrl as string,
+      url: job.jobUrl!,
       source: "ashby" as const,
       location: job.location ?? "",
       description: stripHtml(
@@ -119,7 +125,10 @@ async function fetchAshby(portal: Portal): Promise<ScannedListing[]> {
     }));
 }
 
-async function fetchLever(portal: Portal): Promise<ScannedListing[]> {
+async function fetchLever(
+  portal: Portal,
+  policy?: DiscoveryPolicy,
+): Promise<ScannedListing[]> {
   const json = (await fetchJson(
     `https://api.lever.co/v0/postings/${portal.board}?mode=json`,
   )) as Array<{
@@ -132,14 +141,14 @@ async function fetchLever(portal: Portal): Promise<ScannedListing[]> {
   }> | null;
   if (!Array.isArray(json)) return [];
   return json
-    .filter((job) => job.hostedUrl)
+    .filter((job) => job.hostedUrl && job.text)
     .filter((job) =>
-      passesListStage(job.text ?? "", job.categories?.location ?? ""),
+      passesListStage(job.text ?? "", job.categories?.location ?? "", policy),
     )
     .map((job) => ({
-      title: job.text ?? "",
+      title: job.text!,
       company: portal.name,
-      url: job.hostedUrl as string,
+      url: job.hostedUrl!,
       source: "lever" as const,
       location: job.categories?.location ?? "",
       description: stripHtml(
@@ -149,22 +158,27 @@ async function fetchLever(portal: Portal): Promise<ScannedListing[]> {
     }));
 }
 
-async function fetchPortal(portal: Portal): Promise<ScannedListing[]> {
-  if (portal.source === "greenhouse") return fetchGreenhouse(portal);
-  if (portal.source === "ashby") return fetchAshby(portal);
-  return fetchLever(portal);
+async function fetchPortal(
+  portal: Portal,
+  policy?: DiscoveryPolicy,
+): Promise<ScannedListing[]> {
+  if (portal.source === "greenhouse") return fetchGreenhouse(portal, policy);
+  if (portal.source === "ashby") return fetchAshby(portal, policy);
+  return fetchLever(portal, policy);
 }
 
 async function enrichInChunks(
   listings: ScannedListing[],
+  portals: Portal[],
 ): Promise<ScannedListing[]> {
   const enriched: ScannedListing[] = [];
   for (let i = 0; i < listings.length; i += ENRICH_CHUNK) {
     const chunk = listings.slice(i, i + ENRICH_CHUNK);
     const results = await Promise.all(
       chunk.map((listing) => {
-        const portal = PORTALS.find(
-          (item) => item.name === listing.company && item.source === "greenhouse",
+        const portal = portals.find(
+          (item) =>
+            item.name === listing.company && item.source === "greenhouse",
         );
         return portal ? enrichGreenhouse(listing, portal.board) : listing;
       }),
@@ -174,15 +188,23 @@ async function enrichInChunks(
   return enriched;
 }
 
-export async function scanPortals(): Promise<ScannedListing[]> {
+export async function scanPortals(options?: {
+  portals?: Portal[];
+  policy?: DiscoveryPolicy;
+}): Promise<ScannedListing[]> {
+  const portals = options?.portals?.length ? options.portals : DEFAULT_PORTALS;
+  const policy = options?.policy;
+
   const chunks: Portal[][] = [];
-  for (let i = 0; i < PORTALS.length; i += FETCH_CHUNK) {
-    chunks.push(PORTALS.slice(i, i + FETCH_CHUNK));
+  for (let i = 0; i < portals.length; i += FETCH_CHUNK) {
+    chunks.push(portals.slice(i, i + FETCH_CHUNK));
   }
 
   const listings: ScannedListing[] = [];
   for (const chunk of chunks) {
-    const results = await Promise.all(chunk.map((portal) => fetchPortal(portal)));
+    const results = await Promise.all(
+      chunk.map((portal) => fetchPortal(portal, policy)),
+    );
     listings.push(...results.flat());
   }
 
@@ -190,7 +212,7 @@ export async function scanPortals(): Promise<ScannedListing[]> {
   const others = listings.filter((item) => item.source !== "greenhouse");
 
   const toEnrich = greenhouse.slice(0, GREENHOUSE_ENRICH_CAP);
-  const enriched = await enrichInChunks(toEnrich);
+  const enriched = await enrichInChunks(toEnrich, portals);
   const unenrichedGreenhouse = greenhouse.slice(GREENHOUSE_ENRICH_CAP);
 
   const seen = new Set<string>();
@@ -199,7 +221,7 @@ export async function scanPortals(): Promise<ScannedListing[]> {
     const key = listing.url.split("?")[0];
     if (seen.has(key)) continue;
     seen.add(key);
-    if (!passesPostJdFilter(listing)) continue;
+    if (!passesPostJdFilter(listing, policy)) continue;
     unique.push(listing);
   }
   return unique;

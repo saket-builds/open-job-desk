@@ -1,84 +1,119 @@
 import { buildApplicationAnswers } from "./answers";
 import { runAgent, useBlobStorage } from "./agent";
+import { DEFAULT_PROFILE, sanitizeProfile } from "./default-profile";
+import { loadAppState, withState } from "./storage";
 import type { ProfileCheck, ProfileSummary, ResumeInfo } from "./types";
 
 function profileFromEnv(): ProfileSummary | null {
   if (!process.env.PROFILE_JSON) return null;
   try {
-    return JSON.parse(process.env.PROFILE_JSON) as ProfileSummary;
+    return sanitizeProfile(
+      JSON.parse(process.env.PROFILE_JSON) as Partial<ProfileSummary>,
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function profileFromAgent(): Promise<ProfileSummary | null> {
+  if (useBlobStorage()) return null;
+  try {
+    const fields = [
+      "name",
+      "email",
+      "phone",
+      "location",
+      "workAuthorization",
+      "linkedin",
+      "github",
+      "portfolio",
+      "availability",
+      "currentCompensation",
+      "targetCompensation",
+      "roleFamilies",
+      "seniority",
+      "skills",
+      "targetLocations",
+      "workModes",
+      "industries",
+      "submissionMode",
+      "yearsExperience",
+      "autoSubmitMinScore",
+      "manualReviewMinScore",
+      "minMustHaveCoverage",
+      "excludedCompanies",
+    ] as const;
+
+    const entries = await Promise.all(
+      fields.map(async (field) => {
+        const result = await runAgent<Record<string, unknown>>([
+          "profile",
+          "field",
+          field,
+        ]);
+        return [field, result[field]] as const;
+      }),
+    );
+
+    return sanitizeProfile(
+      Object.fromEntries(entries) as unknown as Partial<ProfileSummary>,
+    );
   } catch {
     return null;
   }
 }
 
 export async function getProfileCheck(): Promise<ProfileCheck> {
-  const profile = profileFromEnv();
-  if (profile) {
-    return {
-      configured: true,
-      missing: [],
-      fields: Object.keys(profile),
-    };
-  }
-
-  if (useBlobStorage()) {
-    throw new Error("PROFILE_JSON is not configured on Vercel");
-  }
-
-  return runAgent<{ configured: boolean; missing: string[]; fields: string[] }>(
-    ["profile", "check"],
-  );
+  const profile = await getProfileSummary();
+  return {
+    configured: true,
+    missing: [],
+    fields: Object.keys(profile),
+  };
 }
 
 export async function getProfileSummary(): Promise<ProfileSummary> {
-  const profile = profileFromEnv();
-  if (profile) return profile;
-
-  if (useBlobStorage()) {
-    throw new Error("PROFILE_JSON is not configured on Vercel");
+  const state = await loadAppState();
+  if (state.profile) {
+    return sanitizeProfile(state.profile);
   }
 
-  const fields = [
-    "name",
-    "email",
-    "phone",
-    "location",
-    "workAuthorization",
-    "linkedin",
-    "github",
-    "portfolio",
-    "availability",
-    "currentCompensation",
-    "targetCompensation",
-    "roleFamilies",
-    "seniority",
-    "skills",
-    "targetLocations",
-    "workModes",
-    "industries",
-    "submissionMode",
-    "yearsExperience",
-    "autoSubmitMinScore",
-    "manualReviewMinScore",
-    "minMustHaveCoverage",
-    "excludedCompanies",
-  ] as const;
+  const fromEnv = profileFromEnv();
+  if (fromEnv) return fromEnv;
 
-  const entries = await Promise.all(
-    fields.map(async (field) => {
-      const result = await runAgent<Record<string, unknown>>([
-        "profile",
-        "field",
-        field,
-      ]);
-      return [field, result[field]] as const;
-    }),
-  );
+  const fromAgent = await profileFromAgent();
+  if (fromAgent) return fromAgent;
 
-  return Object.fromEntries(entries) as unknown as ProfileSummary;
+  return sanitizeProfile(DEFAULT_PROFILE);
+}
+
+export async function saveProfileSummary(
+  incoming: Partial<ProfileSummary>,
+): Promise<ProfileSummary> {
+  return withState(async (state) => {
+    const current = state.profile
+      ? sanitizeProfile(state.profile)
+      : await getProfileSummaryBaseWithoutState();
+    const profile = sanitizeProfile(incoming, current);
+    state.profile = profile;
+    return { state, result: profile };
+  });
+}
+
+async function getProfileSummaryBaseWithoutState(): Promise<ProfileSummary> {
+  const fromEnv = profileFromEnv();
+  if (fromEnv) return fromEnv;
+  const fromAgent = await profileFromAgent();
+  if (fromAgent) return fromAgent;
+  return sanitizeProfile(DEFAULT_PROFILE);
 }
 
 export async function getResumeInfo(): Promise<ResumeInfo> {
+  const state = await loadAppState();
+  if (state.resume?.path) {
+    return state.resume;
+  }
+
   if (process.env.RESUME_URL) {
     return {
       path: process.env.RESUME_URL,
@@ -89,7 +124,7 @@ export async function getResumeInfo(): Promise<ResumeInfo> {
   }
 
   if (useBlobStorage()) {
-    return { path: "Upload resume to Vercel Blob and set RESUME_URL" };
+    return { path: "Upload a PDF on Your details (or set RESUME_URL)" };
   }
 
   const { readFile } = await import("node:fs/promises");
@@ -105,8 +140,15 @@ export async function getResumeInfo(): Promise<ResumeInfo> {
       bytes: meta.bytes,
     };
   } catch {
-    return { path: join(agentStateDir(), "resume.pdf") };
+    return { path: "No résumé uploaded yet — add a PDF on Your details" };
   }
+}
+
+export async function saveResumeInfo(info: ResumeInfo): Promise<ResumeInfo> {
+  return withState(async (state) => {
+    state.resume = info;
+    return { state, result: info };
+  });
 }
 
 export function getApplicationAnswers(profile: ProfileSummary) {

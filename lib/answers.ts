@@ -14,7 +14,8 @@ export function buildApplicationAnswers(
     Portfolio: profile.portfolio ?? "",
     Availability: profile.availability ?? "Immediate",
     "Years of experience": String(profile.yearsExperience),
-    "Current company type": "Product-based (stealth AI startup)",
+    "Current company type":
+      profile.companyTypeAnswer ?? "Product-based company",
     "Are you from Product based organisation?": "Yes",
     "How soon are you available to join?": "Immediate",
     "Current CTC / current compensation": profile.currentCompensation ?? "",

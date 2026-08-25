@@ -1,13 +1,19 @@
 import { classifyListing } from "./classify";
+import { discoveryPolicyFor } from "./discovery-filters";
 import { fetchJobFromUrl } from "./import-job";
-import { isPoorFitJob, passesPostJdFilter } from "./portals";
+import { isPoorFitJob, passesPostJdFilter, resolvePortals } from "./portals";
 import { autoPreparePipeline, prepareJob } from "./prepare";
 import { getProfileSummary } from "./profile-service";
 import { scanPortals } from "./scan";
 import { scoreClassified, slugId } from "./score";
-import { getStorage, loadAppState, withState } from "./storage";
+import { loadAppState, withState } from "./storage";
 import { localStateExists } from "./storage-local";
-import type { DeskStatus, OutcomeStatus, PipelineJob } from "./types";
+import type {
+  DeskStatus,
+  OutcomeStatus,
+  PipelineJob,
+  ProfileSummary,
+} from "./types";
 import type { ScannedListing } from "./scan";
 
 function normalizeUrl(url: string): string {
@@ -24,13 +30,21 @@ function normalizeUrl(url: string): string {
   }
 }
 
+function unclearPauseReason(profile: ProfileSummary): string {
+  const places =
+    profile.targetLocations.slice(0, 2).join(" / ") || "your target locations";
+  return `Confirm this remote role hires people in ${places}`;
+}
+
 async function migrateLegacyPipeline(state: {
   pipeline: PipelineJob[];
   ledger: unknown[];
 }): Promise<PipelineJob[]> {
   if (state.pipeline.length > 0) return state.pipeline;
   const { bootstrapAppState } = await import("./state-bootstrap");
-  const bootstrapped = await bootstrapAppState(state as import("./storage-types").AppState);
+  const bootstrapped = await bootstrapAppState(
+    state as import("./storage-types").AppState,
+  );
   return bootstrapped.pipeline;
 }
 
@@ -65,13 +79,21 @@ export async function updatePipelineJob(
 
 async function listingToPipelineJob(
   listing: ScannedListing,
-  profile: Awaited<ReturnType<typeof getProfileSummary>>,
+  profile: ProfileSummary,
+  options?: { force?: boolean },
 ): Promise<PipelineJob | null> {
   const classified = classifyListing(listing, profile);
   const scored = scoreClassified(classified, profile);
-  if (scored.decision === "exclude" || scored.decision === "skip") {
+  if (
+    !options?.force &&
+    (scored.decision === "exclude" || scored.decision === "skip")
+  ) {
     return null;
   }
+
+  const forced =
+    Boolean(options?.force) &&
+    (scored.decision === "exclude" || scored.decision === "skip");
 
   const job: PipelineJob = {
     id: slugId(listing.company, listing.title, listing.jobId),
@@ -90,19 +112,30 @@ async function listingToPipelineJob(
     experienceMin: classified.experienceMin,
     mustHaves: classified.mustHaves,
     ...scored,
+    decision: forced ? "review" : scored.decision,
+    score: forced
+      ? Math.max(scored.score, profile.manualReviewMinScore)
+      : scored.score,
+    autoEligible: forced ? false : scored.autoEligible,
     deskStatus: "scored",
     employerJobId: `${listing.source}:${listing.jobId}`,
     scoredAt: new Date().toISOString(),
     pauseReason:
       classified.eligibility === "unclear"
-        ? "Confirm this remote role hires India-based employees"
+        ? unclearPauseReason(profile)
         : "Attach resume PDF on the employer form after approval",
+    notes: forced
+      ? "Force-added — skipped discovery filters; review carefully."
+      : undefined,
   };
 
   return prepareJob(job);
 }
 
-export async function importJobFromUrl(url: string): Promise<{
+export async function importJobFromUrl(
+  url: string,
+  options?: { force?: boolean },
+): Promise<{
   added: boolean;
   job: PipelineJob | null;
   reason?: string;
@@ -116,16 +149,18 @@ export async function importJobFromUrl(url: string): Promise<{
         "Could not read that URL. Paste a Greenhouse, Ashby, or Lever job link.",
     };
   }
-  if (!passesPostJdFilter(listing)) {
+
+  const profile = await getProfileSummary();
+  const policy = discoveryPolicyFor(profile);
+
+  if (!options?.force && !passesPostJdFilter(listing, policy)) {
     return {
       added: false,
       job: null,
       reason:
-        "Role filtered out: onsite abroad, residency restriction, or not AI-relevant.",
+        "Role filtered out by your discovery rules (title, location, or JD signals). Check “Force add” to keep it anyway.",
     };
   }
-
-  const profile = await getProfileSummary();
 
   return withState<{
     added: boolean;
@@ -151,14 +186,15 @@ export async function importJobFromUrl(url: string): Promise<{
       };
     }
 
-    const prepared = await listingToPipelineJob(listing, profile);
+    const prepared = await listingToPipelineJob(listing, profile, options);
     if (!prepared) {
       return {
         state,
         result: {
           added: false,
           job: null,
-          reason: "Role scored too low or was excluded by profile rules.",
+          reason:
+            "Role scored too low or was excluded by profile rules. Check “Force add” to keep it.",
         },
       };
     }
@@ -175,7 +211,9 @@ export async function runDiscovery(): Promise<{
   jobs: PipelineJob[];
 }> {
   const profile = await getProfileSummary();
-  const listings = await scanPortals();
+  const policy = discoveryPolicyFor(profile);
+  const portals = resolvePortals(profile);
+  const listings = await scanPortals({ portals, policy });
 
   return withState(async (state) => {
     if (state.pipeline.length === 0) {
@@ -184,20 +222,23 @@ export async function runDiscovery(): Promise<{
 
     state.pipeline = state.pipeline.map((job) => {
       if (
-        (job.deskStatus === "pending-approval" || job.deskStatus === "scored") &&
-        isPoorFitJob(job)
+        (job.deskStatus === "pending-approval" ||
+          job.deskStatus === "scored") &&
+        isPoorFitJob(job, policy)
       ) {
         return {
           ...job,
           deskStatus: "skipped",
           notes:
-            "Removed: onsite abroad, residency restriction, or not an AI-relevant role",
+            "Removed: outside your discovery rules (title, location, or JD signals)",
         };
       }
       return job;
     });
 
-    const existing = new Set(state.pipeline.map((job) => normalizeUrl(job.url)));
+    const existing = new Set(
+      state.pipeline.map((job) => normalizeUrl(job.url)),
+    );
     let skipped = 0;
     const added: PipelineJob[] = [];
 

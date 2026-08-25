@@ -1,174 +1,384 @@
-const TITLE_BLOCK =
-  /\bruby\b|\brails\b|\bintern\b|\bmanager\b|\bdirector\b|\bhead of\b|\bsales\b|\baccount executive\b|\brecruiter\b/;
+import type { DiscoverySettings, ProfileSummary } from "./types";
 
-const HARD_TITLE_RE = [
-  /\bai engineers?\b/,
-  /\bgenai\b/,
-  /\bgen ai\b/,
-  /\bgenerative ai\b/,
-  /\bapplied ai\b/,
-  /\bllm\b/,
-  /\brag\b/,
-  /\blanggraph\b/,
-  /\blangchain\b/,
-  /\bmachine learning engineers?\b/,
-  /\bml engineers?\b/,
-  /\bmlops\b/,
-  /\bnlp engineers?\b/,
-  /\bai\/ml\b/,
-  /\bagentic\b/,
-  /\bvoice agents?\b/,
-  /\bai developers?\b/,
-  /\bai consultants?\b/,
-  /\bai application\b/,
-  /\bsoftware engineer\b.*\bai\b/,
-  /\b(?:^|[^a-z])\bai\b(?:[^a-z]|$)/,
-];
+/** Demo discovery defaults (Applied AI + India/open-remote). Keep aligned with default-profile. */
+const BUILTIN_DISCOVERY: DiscoverySettings = {
+  openTitleMatching: false,
+  titleHardPatterns: [
+    String.raw`\bai engineers?\b`,
+    String.raw`\bgenai\b`,
+    String.raw`\bgen ai\b`,
+    String.raw`\bgenerative ai\b`,
+    String.raw`\bapplied ai\b`,
+    String.raw`\bllm\b`,
+    String.raw`\brag\b`,
+    String.raw`\blanggraph\b`,
+    String.raw`\blangchain\b`,
+    String.raw`\bmachine learning engineers?\b`,
+    String.raw`\bml engineers?\b`,
+    String.raw`\bmlops\b`,
+    String.raw`\bnlp engineers?\b`,
+    String.raw`\bai\/ml\b`,
+    String.raw`\bagentic\b`,
+    String.raw`\bvoice agents?\b`,
+    String.raw`\bai developers?\b`,
+    String.raw`\bai consultants?\b`,
+    String.raw`\bai application\b`,
+    String.raw`\bsoftware engineer\b.*\bai\b`,
+    String.raw`(?:^|[^a-z])\bai\b(?:[^a-z]|$)`,
+  ],
+  titleSoftPatterns: [
+    String.raw`\bsoftware engineers?\b`,
+    String.raw`\bbackend engineers?\b`,
+    String.raw`\bfull[- ]?stack engineers?\b`,
+    String.raw`\bplatform engineers?\b`,
+    String.raw`\bpython engineers?\b`,
+    String.raw`\bapi engineers?\b`,
+    String.raw`\bdata engineers?\b`,
+    String.raw`\bapplication engineers?\b`,
+  ],
+  titleBlockPatterns: [
+    String.raw`\bruby\b`,
+    String.raw`\brails\b`,
+    String.raw`\bintern\b`,
+    String.raw`\bmanager\b`,
+    String.raw`\bdirector\b`,
+    String.raw`\bhead of\b`,
+    String.raw`\bsales\b`,
+    String.raw`\baccount executive\b`,
+    String.raw`\brecruiter\b`,
+  ],
+  jdSignalPatterns: [
+    String.raw`\bai\b`,
+    String.raw`\bllm\b`,
+    String.raw`\brag\b`,
+    String.raw`\bgenai\b`,
+    String.raw`\bgen ai\b`,
+    String.raw`\bgenerative ai\b`,
+    String.raw`\bmachine learning\b`,
+    String.raw`\bmlops\b`,
+    String.raw`\bnlp\b`,
+    String.raw`\blangchain\b`,
+    String.raw`\blanggraph\b`,
+    String.raw`\bopenai\b`,
+    String.raw`\bembeddings?\b`,
+    String.raw`\bvector (?:db|database|search)\b`,
+    String.raw`\bagentic\b`,
+    String.raw`\bfine-?tun`,
+  ],
+  requireJdSignalsForSoftTitles: true,
+  homeLocationPatterns: [
+    String.raw`\bbangalore\b`,
+    String.raw`\bbengaluru\b`,
+    String.raw`\bindia\b`,
+  ],
+  openRemoteOk: true,
+  excludeAbroadResidency: true,
+  portals: [],
+  replaceDefaultPortals: false,
+};
 
-const SOFT_TITLE_RE = [
-  /\bsoftware engineers?\b/,
-  /\bbackend engineers?\b/,
-  /\bfull[- ]?stack engineers?\b/,
-  /\bplatform engineers?\b/,
-  /\bpython engineers?\b/,
-  /\bapi engineers?\b/,
-  /\bdata engineers?\b/,
-  /\bapplication engineers?\b/,
-];
+export interface DiscoveryPolicy {
+  openTitleMatching: boolean;
+  titleHard: RegExp[];
+  titleSoft: RegExp[];
+  titleBlock: RegExp;
+  jdSignals: RegExp;
+  requireJdSignalsForSoftTitles: boolean;
+  homeLocation: RegExp;
+  openRemoteOk: boolean;
+  excludeAbroadResidency: boolean;
+  openRemote: RegExp;
+  abroadResidency: RegExp;
+  abroadCity: RegExp;
+  onsite: RegExp;
+}
+
+function compileMany(patterns: string[]): RegExp[] {
+  const out: RegExp[] = [];
+  for (const pattern of patterns) {
+    try {
+      out.push(new RegExp(pattern, "i"));
+    } catch {
+      // skip invalid user regex
+    }
+  }
+  return out;
+}
+
+function compileJoined(patterns: string[], fallback: RegExp): RegExp {
+  if (patterns.length === 0) return fallback;
+  try {
+    return new RegExp(patterns.join("|"), "i");
+  } catch {
+    return fallback;
+  }
+}
 
 const OPEN_REMOTE_RE =
-  /\bremote\b|\bwork from home\b|\bwfh\b|\bworldwide\b|\bglobally\b|\banywhere\b|\bdistributed\b|\bwork from anywhere\b|\btelecommute\b/;
-
-const INDIA_RE = /\bbangalore\b|\bbengaluru\b|\bindia\b/;
+  /\bremote\b|\bwork from home\b|\bwfh\b|\bworldwide\b|\bglobally\b|\banywhere\b|\bdistributed\b|\bwork from anywhere\b|\btelecommute\b/i;
 
 const ABROAD_MARKERS =
-  /\bunited states\b|\bus only\b|\busa only\b|\buk only\b|\bunited kingdom only\b|\beu only\b|\beurope only\b|\bmust (?:be )?located in (?:the )?(?:us|u\.s\.|united states|uk|united kingdom|eu|europe)\b|\bmust (?:be )?resid(?:e|ing) in (?:the )?(?:us|u\.s\.|united states|uk|united kingdom|eu|europe)\b|\bonly (?:us|u\.s\.|uk|eu) (?:citizens?|residents?)\b|\bno sponsorship\b|\brequires? (?:us|u\.s\.|uk) work authorization\b/;
+  /\bunited states\b|\bus only\b|\busa only\b|\buk only\b|\bunited kingdom only\b|\beu only\b|\beurope only\b|\bmust (?:be )?located in (?:the )?(?:us|u\.s\.|united states|uk|united kingdom|eu|europe)\b|\bmust (?:be )?resid(?:e|ing) in (?:the )?(?:us|u\.s\.|united states|uk|united kingdom|eu|europe)\b|\bonly (?:us|u\.s\.|uk|eu) (?:citizens?|residents?)\b|\bno sponsorship\b|\brequires? (?:us|u\.s\.|uk) work authorization\b/i;
 
 const ABROAD_CITY_RE =
-  /\bsan francisco\b|\bnew york\b|\bseattle\b|\baustin\b|\bboston\b|\bchicago\b|\blos angeles\b|\blondon\b|\bberlin\b|\bparis\b|\bamsterdam\b|\bdublin\b|\btoronto\b|\bvancouver\b|\bsingapore\b(?![\s,/-]*india)/;
+  /\bsan francisco\b|\bnew york\b|\bseattle\b|\baustin\b|\bboston\b|\bchicago\b|\blos angeles\b|\blondon\b|\bberlin\b|\bparis\b|\bamsterdam\b|\bdublin\b|\btoronto\b|\bvancouver\b|\bsingapore\b(?![\s,/-]*india)/i;
 
-const ONSITE_RE = /\bonsite\b|\bon-site\b|\bin-office\b|\bin office\b/;
+const ONSITE_RE = /\bonsite\b|\bon-site\b|\bin-office\b|\bin office\b/i;
+const NEVER_MATCH = /(?!)/;
 
-const AI_JD_RE =
-  /\bai\b|\bllm\b|\brag\b|\bgenai\b|\bgen ai\b|\bgenerative ai\b|\bmachine learning\b|\bmlops\b|\bnlp\b|\blangchain\b|\blanggraph\b|\bopenai\b|\bembeddings?\b|\bvector (?:db|database|search)\b|\bagentic\b|\bfine-?tun/;
+export function policyFromSettings(settings: DiscoverySettings): DiscoveryPolicy {
+  return {
+    openTitleMatching: settings.openTitleMatching,
+    titleHard: compileMany(settings.titleHardPatterns),
+    titleSoft: compileMany(settings.titleSoftPatterns),
+    titleBlock: compileJoined(settings.titleBlockPatterns, NEVER_MATCH),
+    jdSignals: compileJoined(settings.jdSignalPatterns, NEVER_MATCH),
+    requireJdSignalsForSoftTitles: settings.requireJdSignalsForSoftTitles,
+    homeLocation: compileJoined(settings.homeLocationPatterns, NEVER_MATCH),
+    openRemoteOk: settings.openRemoteOk,
+    excludeAbroadResidency: settings.excludeAbroadResidency,
+    openRemote: OPEN_REMOTE_RE,
+    abroadResidency: ABROAD_MARKERS,
+    abroadCity: ABROAD_CITY_RE,
+    onsite: ONSITE_RE,
+  };
+}
 
-function hay(title: string): string {
+export function policyFromProfile(profile: ProfileSummary): DiscoveryPolicy {
+  return policyFromSettings(profile.discovery ?? BUILTIN_DISCOVERY);
+}
+
+export function defaultDiscoveryPolicy(): DiscoveryPolicy {
+  return policyFromSettings(BUILTIN_DISCOVERY);
+}
+
+export function hay(title: string): string {
   return title.toLowerCase();
 }
 
-export function isBlockedTitle(title: string): boolean {
-  return TITLE_BLOCK.test(hay(title));
+function policyOrDefault(policy?: DiscoveryPolicy): DiscoveryPolicy {
+  return policy ?? defaultDiscoveryPolicy();
 }
 
-export function isHardTargetTitle(title: string): boolean {
+export function isBlockedTitle(
+  title: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  return policyOrDefault(policy).titleBlock.test(hay(title));
+}
+
+export function isHardTargetTitle(
+  title: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
   const text = hay(title);
-  if (isBlockedTitle(title)) return false;
-  return HARD_TITLE_RE.some((pattern) => pattern.test(text));
+  if (isBlockedTitle(title, p)) return false;
+  if (p.openTitleMatching) return true;
+  return p.titleHard.some((pattern) => pattern.test(text));
 }
 
-export function isSoftTargetTitle(title: string): boolean {
+export function isSoftTargetTitle(
+  title: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
   const text = hay(title);
-  if (isBlockedTitle(title)) return false;
-  return SOFT_TITLE_RE.some((pattern) => pattern.test(text));
+  if (isBlockedTitle(title, p)) return false;
+  if (p.openTitleMatching) return false;
+  return p.titleSoft.some((pattern) => pattern.test(text));
 }
 
-/** Title passes list-stage fetch (hard AI titles or soft SWE titles). */
-export function isListableTitle(title: string): boolean {
-  return isHardTargetTitle(title) || isSoftTargetTitle(title);
+export function isListableTitle(
+  title: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  if (isBlockedTitle(title, p)) return false;
+  if (p.openTitleMatching) return true;
+  return isHardTargetTitle(title, p) || isSoftTargetTitle(title, p);
 }
 
-/** Back-compat: explicit AI-family titles only. */
-export function isTargetTitle(title: string): boolean {
-  return isHardTargetTitle(title);
+export function isTargetTitle(
+  title: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  return isHardTargetTitle(title, policy);
 }
 
-export function jdHasAiSignals(location: string, description: string): boolean {
-  return AI_JD_RE.test(`${location}\n${description}`.toLowerCase());
+export function jdHasSignals(
+  location: string,
+  description: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  return p.jdSignals.test(`${location}\n${description}`.toLowerCase());
 }
 
-export function mentionsIndia(location: string, description = ""): boolean {
-  return INDIA_RE.test(`${location}\n${description}`.toLowerCase());
+export function jdHasAiSignals(
+  location: string,
+  description: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  return jdHasSignals(location, description, policy);
 }
 
-export function isOpenRemote(location: string, description = ""): boolean {
+export function mentionsHomeMarket(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  return p.homeLocation.test(`${location}\n${description}`.toLowerCase());
+}
+
+export function mentionsIndia(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  return mentionsHomeMarket(location, description, policy);
+}
+
+export function isOpenRemote(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  if (!p.openRemoteOk) return false;
   const text = `${location}\n${description}`.toLowerCase();
   if (!location.trim() && !description.trim()) return true;
-  return OPEN_REMOTE_RE.test(text);
+  return p.openRemote.test(text);
 }
 
-export function requiresResidencyAbroad(location: string, description = ""): boolean {
-  return ABROAD_MARKERS.test(`${location}\n${description}`.toLowerCase());
+export function requiresResidencyAbroad(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  if (!p.excludeAbroadResidency) return false;
+  return p.abroadResidency.test(`${location}\n${description}`.toLowerCase());
 }
 
-export function isOnsiteOnlyAbroad(location: string, description = ""): boolean {
+export function isOnsiteOnlyAbroad(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
   const text = `${location}\n${description}`.toLowerCase();
-  if (isOpenRemote(location, description)) return false;
-  if (mentionsIndia(location, description)) return false;
-  const onsiteSignal = ONSITE_RE.test(text) || /\bhybrid\b/.test(text);
+  if (isOpenRemote(location, description, p)) return false;
+  if (mentionsHomeMarket(location, description, p)) return false;
+  const onsiteSignal = p.onsite.test(text) || /\bhybrid\b/i.test(text);
   if (!onsiteSignal) return false;
-  return ABROAD_CITY_RE.test(text) || /\bunited states\b|\busa\b|\bunited kingdom\b|\beurope\b/.test(text);
+  return (
+    p.abroadCity.test(text) ||
+    /\bunited states\b|\busa\b|\bunited kingdom\b|\beurope\b/i.test(text)
+  );
 }
 
-/** Geo/auth filter after JD is available (or list location for Ashby/Lever). */
-export function isLocationCompatible(location: string, description = ""): boolean {
-  if (requiresResidencyAbroad(location, description)) return false;
-  if (isOnsiteOnlyAbroad(location, description)) return false;
-  if (mentionsIndia(location, description)) return true;
-  if (isOpenRemote(location, description)) return true;
+export function isLocationCompatible(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  if (requiresResidencyAbroad(location, description, p)) return false;
+  if (isOnsiteOnlyAbroad(location, description, p)) return false;
+  if (mentionsHomeMarket(location, description, p)) return true;
+  if (isOpenRemote(location, description, p)) return true;
   return false;
 }
 
-/** Back-compat alias used by classify/score copy. */
-export function isIndiaCompatible(location: string, description = ""): boolean {
-  return isLocationCompatible(location, description);
+export function isIndiaCompatible(
+  location: string,
+  description = "",
+  policy?: DiscoveryPolicy,
+): boolean {
+  return isLocationCompatible(location, description, policy);
 }
 
-/** Drop obvious onsite-abroad rows before JD enrichment. */
-export function isObviousOnsiteAbroadList(location: string): boolean {
+export function isObviousOnsiteAbroadList(
+  location: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
   const text = location.toLowerCase().trim();
   if (!text) return false;
-  if (isOpenRemote(location)) return false;
-  if (mentionsIndia(location)) return false;
-  if (ONSITE_RE.test(text) || /\bhybrid\b/.test(text)) {
-    return ABROAD_CITY_RE.test(text) || /\bunited states\b|\busa\b|\bunited kingdom\b|\beurope\b/.test(text);
+  if (isOpenRemote(location, "", p)) return false;
+  if (mentionsHomeMarket(location, "", p)) return false;
+  if (p.onsite.test(text) || /\bhybrid\b/i.test(text)) {
+    return (
+      p.abroadCity.test(text) ||
+      /\bunited states\b|\busa\b|\bunited kingdom\b|\beurope\b/i.test(text)
+    );
   }
-  if (/\bunited states only\b|\bus only\b|\buk only\b|\beu only\b/.test(text)) return true;
+  if (/\bunited states only\b|\bus only\b|\buk only\b|\beu only\b/i.test(text)) {
+    return p.excludeAbroadResidency;
+  }
   return false;
 }
 
-export function passesListStage(title: string, location: string): boolean {
-  if (!isListableTitle(title)) return false;
-  return !isObviousOnsiteAbroadList(location);
+export function passesListStage(
+  title: string,
+  location: string,
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  if (!isListableTitle(title, p)) return false;
+  return !isObviousOnsiteAbroadList(location, p);
 }
 
-export function passesPostJdFilter(listing: {
-  title: string;
-  location: string;
-  description: string;
-}): boolean {
-  if (!isListableTitle(listing.title)) return false;
-  if (!isLocationCompatible(listing.location, listing.description)) return false;
+export function passesPostJdFilter(
+  listing: {
+    title: string;
+    location: string;
+    description: string;
+  },
+  policy?: DiscoveryPolicy,
+): boolean {
+  const p = policyOrDefault(policy);
+  if (!isListableTitle(listing.title, p)) return false;
+  if (!isLocationCompatible(listing.location, listing.description, p)) {
+    return false;
+  }
   if (
-    isSoftTargetTitle(listing.title) &&
-    !isHardTargetTitle(listing.title) &&
-    !jdHasAiSignals(listing.location, listing.description)
+    p.requireJdSignalsForSoftTitles &&
+    !p.openTitleMatching &&
+    isSoftTargetTitle(listing.title, p) &&
+    !isHardTargetTitle(listing.title, p) &&
+    !jdHasSignals(listing.location, listing.description, p)
   ) {
     return false;
   }
   return true;
 }
 
-export function isPoorFitJob(job: {
-  title: string;
-  locations?: string[];
-  description?: string;
-  eligibility?: string;
-}): boolean {
+export function isPoorFitJob(
+  job: {
+    title: string;
+    locations?: string[];
+    description?: string;
+    eligibility?: string;
+  },
+  policy?: DiscoveryPolicy,
+): boolean {
   if (job.eligibility === "ineligible") return true;
   const location = (job.locations ?? []).join(" ");
-  return !passesPostJdFilter({
-    title: job.title,
-    location,
-    description: job.description ?? "",
-  });
+  return !passesPostJdFilter(
+    {
+      title: job.title,
+      location,
+      description: job.description ?? "",
+    },
+    policy,
+  );
+}
+
+export function discoveryPolicyFor(
+  profile?: ProfileSummary | null,
+): DiscoveryPolicy {
+  return profile ? policyFromProfile(profile) : defaultDiscoveryPolicy();
 }

@@ -14,14 +14,14 @@ Source: [`AFFINE-PAGE-GUIDE.md`](./AFFINE-PAGE-GUIDE.md).
 
 ## What this is
 
-A personal job-search desk for Applied AI / GenAI roles:
+A personal job-search desk (demo defaults: Applied AI / GenAI):
 
 1. Discovers jobs from Greenhouse, Ashby, and Lever boards  
 2. You approve roles on the desk  
 3. You apply on the company site (Chrome helper can fill Greenhouse facts)  
 4. You mark **I submitted** and track outcomes  
 
-Nothing is auto-submitted to employers.
+Nothing is auto-submitted to employers. Change titles, geo rules, skills, and boards on **Your details** for any sector.
 
 ## What it does not do
 
@@ -34,6 +34,8 @@ Nothing is auto-submitted to employers.
 - Node.js 20+  
 - Chrome (for the fill helper)  
 - Optional: Vercel account + Blob store for a hosted desk  
+
+After clone, open **Your details** to replace the Jordan Lee demo, set targeting for your sector/locations, and upload a résumé PDF. Use **Force add** when pasting a job URL that discovery would otherwise filter.
 
 ## Install and run locally
 
@@ -50,9 +52,13 @@ Open http://localhost:3000
 ### First-time setup on the desk
 
 1. Go to **Your details**  
-2. Edit the application packet (name, email, phone, work history, CTC text, etc.)  
-3. Save, then copy the **fill token**  
-4. Download **job-desk-fill-helper.zip** (or use `chrome-extension/` after `npm run pack:fill`)
+2. Edit **Your targeting** (skills, locations, title regexes, open-title mode, boards) and save  
+3. Upload your résumé PDF  
+4. Edit the application packet (name, email, phone, work history, CTC text, etc.) and save  
+5. Copy the **fill token**  
+6. Download **job-desk-fill-helper.zip** (or use `chrome-extension/` after `npm run pack:fill`)
+
+Optional seed: minify [`docs/profile.sample.json`](./profile.sample.json) into `PROFILE_JSON` in `.env.local`.
 
 ## Chrome fill helper
 
@@ -77,27 +83,29 @@ Find new jobs (or daily cron)
     → I submitted → track Interview / Offer / Closed
 ```
 
-Paste a Greenhouse / Ashby / Lever URL with **Add this job** if you found a role elsewhere.
+Paste a Greenhouse / Ashby / Lever URL with **Add this job**. Check **Force add** to bypass title/geo discovery filters (still scores; low scores go to review).
 
-## Location policy (built in)
+## Location policy (demo defaults)
 
-**Kept**
+Demo defaults keep Bangalore / India and open-remote; change **home location patterns** and related flags on **Your details** for your markets.
+
+**Kept (with demo defaults)**
 
 - Bangalore / India (any work mode)  
 - Open remote / WFH / worldwide / distributed / work from anywhere  
 
-**Dropped**
+**Dropped (with demo defaults)**
 
 - Onsite or hybrid only outside India  
 - Must reside in US / UK / EU (and similar residency / work-auth barriers)
 
-Remote roles without India mentioned stay as **unclear** — confirm they hire India-based employees before applying.
+Remote roles without your home markets mentioned stay as **unclear** — confirm they hire for your locations before applying.
 
 ## Deploy on Vercel (optional)
 
 1. Import the repo into Vercel  
-2. Set env: `PROFILE_JSON`, `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`, optional `RESUME_URL`  
-3. Deploy  
+2. Set env: `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET` (required), optional `PROFILE_JSON` / `RESUME_URL`  
+3. Deploy — keep the URL private or put access control in front; APIs have no login  
 4. Point the Chrome extension desk URL at your deployment  
 5. Cron routes: `/api/cron/scan` and `/api/cron/prepare` (see `vercel.json`)
 

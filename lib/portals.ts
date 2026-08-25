@@ -1,10 +1,7 @@
-export type PortalSource = "greenhouse" | "ashby" | "lever";
+import type { DiscoveryPortal, PortalSource, ProfileSummary } from "./types";
 
-export interface Portal {
-  name: string;
-  source: PortalSource;
-  board: string;
-}
+export type { PortalSource };
+export type Portal = DiscoveryPortal;
 
 export {
   isIndiaCompatible,
@@ -17,8 +14,8 @@ export {
   passesPostJdFilter,
 } from "./discovery-filters";
 
-/** Boards that post Applied AI / backend-AI roles (India + global remote). */
-export const PORTALS: Portal[] = [
+/** Built-in boards (demo Applied AI / tech set). Override via profile.discovery. */
+export const DEFAULT_PORTALS: Portal[] = [
   // India-first (Greenhouse)
   { name: "Razorpay", source: "greenhouse", board: "razorpay" },
   { name: "PhonePe", source: "greenhouse", board: "phonepe" },
@@ -104,3 +101,26 @@ export const PORTALS: Portal[] = [
   { name: "Affirm", source: "lever", board: "affirm" },
   { name: "Plaid", source: "lever", board: "plaid" },
 ];
+
+/** @deprecated Prefer resolvePortals(profile) — kept for import-job board name lookup. */
+export const PORTALS = DEFAULT_PORTALS;
+
+export function resolvePortals(profile?: ProfileSummary | null): Portal[] {
+  const discovery = profile?.discovery;
+  const extras = discovery?.portals ?? [];
+  if (discovery?.replaceDefaultPortals) {
+    return extras.length > 0 ? extras : DEFAULT_PORTALS;
+  }
+  if (extras.length === 0) return DEFAULT_PORTALS;
+  const seen = new Set(
+    DEFAULT_PORTALS.map((portal) => `${portal.source}:${portal.board}`),
+  );
+  const merged = [...DEFAULT_PORTALS];
+  for (const portal of extras) {
+    const key = `${portal.source}:${portal.board}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(portal);
+  }
+  return merged;
+}

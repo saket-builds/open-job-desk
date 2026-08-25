@@ -1,3 +1,58 @@
+export type PortalSource = "greenhouse" | "ashby" | "lever";
+
+export interface DiscoveryPortal {
+  name: string;
+  source: PortalSource;
+  board: string;
+}
+
+/** User-editable discovery / geo rules. Regex sources are case-insensitive. */
+export interface DiscoverySettings {
+  /** When true, any title not matching titleBlockPatterns is listable. */
+  openTitleMatching: boolean;
+  titleHardPatterns: string[];
+  titleSoftPatterns: string[];
+  titleBlockPatterns: string[];
+  jdSignalPatterns: string[];
+  requireJdSignalsForSoftTitles: boolean;
+  /** Locations treated as a home-market match (e.g. bangalore|india). */
+  homeLocationPatterns: string[];
+  openRemoteOk: boolean;
+  excludeAbroadResidency: boolean;
+  /** Extra ATS boards to scan (merged with built-ins unless replaceDefaultPortals). */
+  portals: DiscoveryPortal[];
+  replaceDefaultPortals: boolean;
+}
+
+export interface ProfileSummary {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  workAuthorization: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  availability?: string;
+  currentCompensation?: string;
+  targetCompensation?: string;
+  roleFamilies: string[];
+  seniority: string[];
+  skills: string[];
+  targetLocations: string[];
+  workModes: string[];
+  industries: string[];
+  submissionMode: string;
+  yearsExperience: number;
+  autoSubmitMinScore: number;
+  manualReviewMinScore: number;
+  minMustHaveCoverage: number;
+  excludedCompanies: string[];
+  /** Product-based org answer used on some forms. */
+  companyTypeAnswer?: string;
+  discovery: DiscoverySettings;
+}
+
 export type OutcomeStatus = "applied" | "interview" | "offer" | "closed";
 
 export type DeskStatus =
@@ -64,32 +119,6 @@ export interface ProfileCheck {
   configured: boolean;
   missing: string[];
   fields: string[];
-}
-
-export interface ProfileSummary {
-  name: string;
-  email: string;
-  phone: string;
-  location: string;
-  workAuthorization: string;
-  linkedin?: string;
-  github?: string;
-  portfolio?: string;
-  availability?: string;
-  currentCompensation?: string;
-  targetCompensation?: string;
-  roleFamilies: string[];
-  seniority: string[];
-  skills: string[];
-  targetLocations: string[];
-  workModes: string[];
-  industries: string[];
-  submissionMode: string;
-  yearsExperience: number;
-  autoSubmitMinScore: number;
-  manualReviewMinScore: number;
-  minMustHaveCoverage: number;
-  excludedCompanies: string[];
 }
 
 export interface LedgerEntry {

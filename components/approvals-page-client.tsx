@@ -20,9 +20,31 @@ import {
   FOLLOW_UP_DAYS,
   outcomeLabel,
 } from "@/lib/board";
-import type { OutcomeStatus, PipelineJob } from "@/lib/types";
+import type { MustHave, OutcomeStatus, PipelineJob } from "@/lib/types";
 import { FindNewJobsButton } from "@/components/find-new-jobs-button";
 import { AddJobUrl } from "@/components/add-job-url";
+import { cn } from "@/lib/utils";
+
+const GENERIC_KNOCKOUTS = [
+  "Canonical resume PDF must be attached on the employer form",
+] as const;
+
+function isGenericKnockoutText(text: string): boolean {
+  if ((GENERIC_KNOCKOUTS as readonly string[]).includes(text)) return true;
+  return /^Confirm this remote role hires people in /i.test(text);
+}
+
+const SKILL_PILL_LIMIT = 10;
+
+function isGenericKnockout(text: string): boolean {
+  return isGenericKnockoutText(text);
+}
+
+function jobSpecificKnockouts(job: PipelineJob): string[] {
+  return (job.knockouts ?? job.blockers ?? []).filter(
+    (item) => !isGenericKnockout(item),
+  );
+}
 
 export function ApprovalsPageClient() {
   const [jobs, setJobs] = useState<PipelineJob[]>([]);
@@ -30,6 +52,10 @@ export function ApprovalsPageClient() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const [lane, setLane] = useState<"to-review" | "applying" | "history">(
+    "to-review",
+  );
+  const [laneReady, setLaneReady] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,6 +74,20 @@ export function ApprovalsPageClient() {
     [jobs],
   );
 
+  useEffect(() => {
+    if (loading || laneReady) return;
+    if (toReview.length === 0 && applyingNow.length > 0) {
+      setLane("applying");
+    } else if (
+      toReview.length === 0 &&
+      applyingNow.length === 0 &&
+      history.length > 0
+    ) {
+      setLane("history");
+    }
+    setLaneReady(true);
+  }, [loading, laneReady, toReview.length, applyingNow.length, history.length]);
+
   async function decide(
     id: string,
     action: "approve" | "reject",
@@ -61,7 +101,6 @@ export function ApprovalsPageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action,
-          approvedBy: "Jordan Lee",
           reason,
         }),
       });
@@ -74,6 +113,7 @@ export function ApprovalsPageClient() {
         setDone(
           `Approved ${job.company}. It moved to Applying now — open the posting when you are ready.`,
         );
+        setLane("applying");
       }
       await load();
     } catch (err) {
@@ -98,6 +138,7 @@ export function ApprovalsPageClient() {
           ? `Recorded ${job.company}. It is in History with today's date.`
           : "Recorded. It is in History.",
       );
+      setLane("history");
       await load();
     } catch (err) {
       setError(
@@ -149,7 +190,7 @@ export function ApprovalsPageClient() {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-10 p-6">
+      <div className="flex flex-1 flex-col gap-6 p-6">
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         {done ? (
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
@@ -161,51 +202,113 @@ export function ApprovalsPageClient() {
           <p className="text-sm text-muted-foreground">Loading roles…</p>
         ) : (
           <>
-            <Lane
-              title="To review"
-              count={toReview.length}
-              empty="No new roles waiting. Tap Find new jobs above, or check back after the daily search around 11:30 AM."
+            <div
+              role="tablist"
+              aria-label="Job stages"
+              className="flex flex-wrap gap-2 border-b border-border pb-3"
             >
-              {toReview.map((job) => (
-                <ReviewCard
-                  key={job.id}
-                  job={job}
-                  busy={busyId === job.id}
-                  onApprove={() => decide(job.id, "approve")}
-                  onSkip={() => decide(job.id, "reject", "Not a fit")}
-                />
-              ))}
-            </Lane>
+              {(
+                [
+                  {
+                    id: "to-review" as const,
+                    label: "To review",
+                    count: toReview.length,
+                  },
+                  {
+                    id: "applying" as const,
+                    label: "Applying now",
+                    count: applyingNow.length,
+                  },
+                  {
+                    id: "history" as const,
+                    label: "History",
+                    count: history.length,
+                  },
+                ] as const
+              ).map((tab) => {
+                const active = lane === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setLane(tab.id)}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    {tab.label}
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.5 text-xs tabular-nums",
+                        active
+                          ? "bg-background/15 text-background"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-            <Lane
-              title="Applying now"
-              count={applyingNow.length}
-              empty="Nothing in progress. Approve a role above, then apply on the company site."
-            >
-              {applyingNow.map((job) => (
-                <ApplyingCard
-                  key={job.id}
-                  job={job}
-                  busy={busyId === job.id}
-                  onSubmitted={() => markSubmitted(job.id)}
-                />
-              ))}
-            </Lane>
+            {lane === "to-review" || lane === "applying" ? (
+              <ToReviewTips />
+            ) : null}
 
-            <Lane
-              title="History"
-              count={history.length}
-              empty="No submissions yet. After you apply, tap I submitted on the card above."
-            >
-              {history.map((job) => (
-                <HistoryCard
-                  key={job.id}
-                  job={job}
-                  busy={busyId === job.id}
-                  onOutcome={(status) => setOutcome(job.id, status)}
-                />
-              ))}
-            </Lane>
+            {lane === "to-review" ? (
+              <LanePanel
+                empty="No new roles waiting. Tap Find new jobs above, or check back after the daily search around 11:30 AM."
+                count={toReview.length}
+              >
+                {toReview.map((job) => (
+                  <ReviewCard
+                    key={job.id}
+                    job={job}
+                    busy={busyId === job.id}
+                    onApprove={() => decide(job.id, "approve")}
+                    onSkip={() => decide(job.id, "reject", "Not a fit")}
+                  />
+                ))}
+              </LanePanel>
+            ) : null}
+
+            {lane === "applying" ? (
+              <LanePanel
+                empty="Nothing in progress. Approve a role in To review, then apply on the company site."
+                count={applyingNow.length}
+              >
+                {applyingNow.map((job) => (
+                  <ApplyingCard
+                    key={job.id}
+                    job={job}
+                    busy={busyId === job.id}
+                    onSubmitted={() => markSubmitted(job.id)}
+                  />
+                ))}
+              </LanePanel>
+            ) : null}
+
+            {lane === "history" ? (
+              <LanePanel
+                empty="No submissions yet. After you apply, tap I submitted in Applying now."
+                count={history.length}
+              >
+                {history.map((job) => (
+                  <HistoryCard
+                    key={job.id}
+                    job={job}
+                    busy={busyId === job.id}
+                    onOutcome={(status) => setOutcome(job.id, status)}
+                  />
+                ))}
+              </LanePanel>
+            ) : null}
           </>
         )}
       </div>
@@ -213,31 +316,54 @@ export function ApprovalsPageClient() {
   );
 }
 
-function Lane({
-  title,
+function LanePanel({
   count,
   empty,
   children,
 }: {
-  title: string;
   count: number;
   empty: string;
   children: ReactNode;
 }) {
-  return (
-    <section className="space-y-4">
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-        <span className="text-sm text-muted-foreground">{count}</span>
+  if (count === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border p-8 text-sm text-muted-foreground">
+        {empty}
       </div>
-      {count === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-8 text-sm text-muted-foreground">
-          {empty}
-        </div>
-      ) : (
-        <div className="grid gap-4">{children}</div>
-      )}
-    </section>
+    );
+  }
+
+  return <div className="grid gap-4">{children}</div>;
+}
+
+function ToReviewTips() {
+  return (
+    <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+      <p className="font-medium text-foreground">Before you apply</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        <li>Canonical resume PDF must be attached on the employer form</li>
+        <li>
+          Confirm remote roles hire in your target locations before you apply
+        </li>
+        <li>
+          If you approve, the job moves to <strong>Applying now</strong>. You
+          still submit on the company site yourself.
+        </li>
+      </ul>
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2.5 rounded-full bg-emerald-600" aria-hidden />
+          Green = on your résumé
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="size-2.5 rounded-full border border-amber-600/50 bg-amber-100"
+            aria-hidden
+          />
+          Amber = in the JD, confirm before claiming
+        </span>
+      </p>
+    </div>
   );
 }
 
@@ -257,12 +383,55 @@ function JobMeta({ job }: { job: PipelineJob }) {
   );
 }
 
-function Knockouts({ job }: { job: PipelineJob }) {
-  const items = job.knockouts ?? job.blockers ?? [];
+function MatchSummary({ job }: { job: PipelineJob }) {
+  const skills = job.mustHaves ?? [];
+  const shown = skills.slice(0, SKILL_PILL_LIMIT);
+  const extra = skills.length - shown.length;
+
+  return (
+    <div className="space-y-2">
+      {typeof job.experienceMin === "number" ? (
+        <p className="text-sm text-muted-foreground">
+          Asks ~{job.experienceMin}+ years
+        </p>
+      ) : null}
+      {shown.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {shown.map((item) => (
+            <SkillPill key={item.requirement} item={item} />
+          ))}
+          {extra > 0 ? (
+            <Badge variant="outline" className="text-muted-foreground">
+              +{extra} more
+            </Badge>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SkillPill({ item }: { item: MustHave }) {
+  const hasSkill = item.status === "met";
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        hasSkill
+          ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+          : "border-amber-200 bg-amber-50 text-amber-950",
+      )}
+    >
+      {item.requirement}
+    </Badge>
+  );
+}
+
+function Knockouts({ items }: { items: string[] }) {
   if (items.length === 0) return null;
   return (
     <div>
-      <p className="mb-1 text-sm font-medium">Before you apply</p>
+      <p className="mb-1 text-sm font-medium">Check before you apply</p>
       <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
         {items.map((item) => (
           <li key={item}>{item}</li>
@@ -289,11 +458,8 @@ function ReviewCard({
         <JobMeta job={job} />
       </CardHeader>
       <CardContent className="space-y-4">
-        <Knockouts job={job} />
-        <p className="text-sm text-muted-foreground">
-          If you approve, this moves to Applying now. You still submit on the
-          company site yourself.
-        </p>
+        <MatchSummary job={job} />
+        <Knockouts items={jobSpecificKnockouts(job)} />
         <div className="flex flex-wrap gap-2">
           <Button onClick={onApprove} disabled={busy}>
             {busy ? (
@@ -329,7 +495,8 @@ function ApplyingCard({
         <JobMeta job={job} />
       </CardHeader>
       <CardContent className="space-y-4">
-        <Knockouts job={job} />
+        <MatchSummary job={job} />
+        <Knockouts items={jobSpecificKnockouts(job)} />
         <p className="text-sm text-muted-foreground">
           Open the posting. In Chrome, tap <strong>Fill from résumé</strong> on
           the dark bar. Attach your résumé PDF, check the form, then click
