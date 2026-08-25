@@ -2,6 +2,13 @@
 
 This is the shareable how-to for forks. Replace demo **Jordan Lee** data with your own on **Your details**.
 
+## Visual guide (Present)
+
+Slide walkthrough (arrow keys / Next):  
+https://wlddrick.github.io/open-job-desk/guide-assets/present.html
+
+Composed frames live in [`docs/guide-assets/frames/`](./guide-assets/frames/). Layout checklist: [`EDGELESS-FRAMES.md`](./EDGELESS-FRAMES.md).
+
 ## What this is
 
 A personal job-search desk for Applied AI / GenAI roles:
@@ -128,6 +135,6 @@ See [CREDITS.md](CREDITS.md) and [LICENSE](LICENSE) (MIT).
 ```text
 Here's Job Desk — an open-source personal job desk (scan AI roles, approve, fill Greenhouse facts; you always submit yourself).
 
-Guide: <AFFINE_PUBLIC_SHARE_URL>
+Guide: https://wlddrick.github.io/open-job-desk/guide-assets/present.html
 GitHub: https://github.com/wlddrick/open-job-desk
 ```

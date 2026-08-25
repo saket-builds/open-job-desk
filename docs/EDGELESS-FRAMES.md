@@ -1,9 +1,12 @@
 # Job Desk — Edgeless Visual Guide (layout checklist)
 
-Primary deliverable: AFFiNE Present deck (**Job Desk — Visual Guide**).  
+Primary Present URL (arrow keys):  
+https://wlddrick.github.io/open-job-desk/guide-assets/present.html
+
+AFFiNE workspace home (Open Source): optional co-edit canvas for stickies/frames on top of these slides.  
 Text twin: [GUIDE.md](./GUIDE.md).  
 Composed slide PNGs: [guide-assets/frames/](./guide-assets/frames/).  
-Source collage HTML: [guide-assets/slides.html](./guide-assets/slides.html) (serve via `public/guide-assets/slides.html` locally).
+Source collage HTML: [guide-assets/slides.html](./guide-assets/slides.html).
 
 GitHub: https://github.com/wlddrick/open-job-desk
 
@@ -105,6 +108,6 @@ GitHub: https://github.com/wlddrick/open-job-desk
 ```text
 Here's Job Desk — an open-source personal job desk (scan AI roles, approve, fill Greenhouse facts; you always submit yourself).
 
-Guide: <AFFINE_PUBLIC_SHARE_URL>
+Guide: https://wlddrick.github.io/open-job-desk/guide-assets/present.html
 GitHub: https://github.com/wlddrick/open-job-desk
 ```

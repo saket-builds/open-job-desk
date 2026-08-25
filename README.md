@@ -19,6 +19,10 @@ Built as a founder-led side project. The repo ships with a **fictional demo prof
 - No auto-submit on employer sites
 - Fill helper targets **Greenhouse** apply forms today (Ashby / Lever: import + manual apply)
 
+## Visual guide
+
+Present walkthrough (8 slides, arrow keys): https://wlddrick.github.io/open-job-desk/guide-assets/present.html
+
 ## Quick start
 
 ```bash
@@ -75,3 +79,4 @@ Third-party projects and APIs are listed in [CREDITS.md](CREDITS.md).
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
