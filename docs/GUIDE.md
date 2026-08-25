@@ -28,8 +28,8 @@ Nothing is auto-submitted to employers.
 ## Install and run locally
 
 ```bash
-git clone <YOUR_FORK_OR_REPO_URL>
-cd job-desk   # or open-job-desk folder name
+git clone https://github.com/wlddrick/open-job-desk.git
+cd open-job-desk
 npm install
 cp .env.example .env.local
 npm run dev
@@ -129,5 +129,5 @@ See [CREDITS.md](CREDITS.md) and [LICENSE](LICENSE) (MIT).
 Here's Job Desk — an open-source personal job desk (scan AI roles, approve, fill Greenhouse facts; you always submit yourself).
 
 Guide: <AFFINE_PUBLIC_SHARE_URL>
-GitHub: <GITHUB_REPO_URL>
+GitHub: https://github.com/wlddrick/open-job-desk
 ```

@@ -81,10 +81,10 @@ Portals → Scan + filters → Lanes (review / applying / history) → Packet �
 
 ## Frame 08 — Links + credits
 
-- GitHub: `<GITHUB_REPO_URL>`
+- GitHub: https://github.com/wlddrick/open-job-desk
 - Credits: CREDITS.md · License: MIT
 
 IG reply template:
 Here's Job Desk — open-source personal job desk (scan AI roles, approve, fill Greenhouse; you always submit yourself).
 Guide: `<AFFINE_SHARE_URL>`
-GitHub: `<GITHUB_REPO_URL>`
+GitHub: https://github.com/wlddrick/open-job-desk
