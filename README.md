@@ -22,7 +22,8 @@ Built as a founder-led side project. The repo ships with a **fictional demo prof
 ## Quick start
 
 ```bash
-cd job-desk
+git clone https://github.com/wlddrick/open-job-desk.git
+cd open-job-desk
 npm install
 cp .env.example .env.local
 npm run dev
