@@ -59,7 +59,7 @@
     </div>
   </div>
   <script>
-    const BASE = 'https://cdn.jsdelivr.net/gh/wlddrick/open-job-desk@master/docs/guide-assets/frames/';
+    const BASE = new URL('./frames/', window.location.href).href;
     const titles = [
       '01 Start here',
       '02 Install',
