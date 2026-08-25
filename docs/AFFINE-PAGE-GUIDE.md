@@ -99,16 +99,15 @@ Open **Your details**. The demo is Jordan Lee — change it.
 
 ### B. Your targeting (this is how non-AI careers work)
 
-Still on **Your details**, find **Targeting** / discovery settings:
+Still on **Your details**, find **Which jobs to find**:
 
-1. Set **skills** to words from *your* résumé (Excel, ICU, Figma, Python, classroom management…).  
-2. Set **role families** and **locations** you actually want.  
-3. For careers that are **not** Applied AI, turn on **Open title matching** (or clear the strict AI title rules) so more titles can appear.  
-4. Set **home location** patterns for *your* city / country (the demo defaults to India / Bangalore / open remote).  
-5. Optionally add extra company boards, or leave the built-in list.  
-6. Save targeting.
+1. Set **skills** (above) to words from *your* résumé.  
+2. Under **Places you can work**, type city/country words — one per line (`bangalore`, `india`).  
+3. Under **Job titles you want**, type normal title words (`nurse`, `teacher`, `product designer`) — **not** code.  
+4. For most non-tech careers, turn on **Show almost any job title**.  
+5. Save targeting.
 
-> 💡 **Tip:** Green and amber pills later compare the job’s must-haves to the **skills list** you save here. Put real résumé skills in that box.
+> 💡 Ignore **Show advanced rules** unless a technical friend needs it. Regex is optional now.
 
 ![Your details screen](https://raw.githubusercontent.com/saket-builds/open-job-desk/master/docs/guide-assets/desk-your-details.png)
 

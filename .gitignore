@@ -48,6 +48,7 @@ resume.json
 data/profile.vercel.json
 job-desk-state.json
 *.pdf
+.demo-appdata/
 
 .vercel
 .env*.local
