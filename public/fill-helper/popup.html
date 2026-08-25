@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Fill from résumé</title>
+    <style>
+      body {
+        font: 14px/1.45 system-ui, sans-serif;
+        width: 320px;
+        margin: 0;
+        padding: 14px;
+        color: #0f172a;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 10px 0 4px;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+      }
+      button {
+        margin-top: 12px;
+        width: 100%;
+        border: 0;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        padding: 8px;
+        cursor: pointer;
+      }
+      p {
+        font-size: 12px;
+        color: #475569;
+        margin: 8px 0 0;
+      }
+      #status {
+        min-height: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <strong>Fill helper</strong>
+    <p>Paste the token from Your details. Then open a Greenhouse posting and tap Fill from résumé.</p>
+    <label for="deskUrl">Job desk URL</label>
+    <input id="deskUrl" />
+    <label for="fillToken">Fill token</label>
+    <input id="fillToken" autocomplete="off" />
+    <button type="button" id="save">Save</button>
+    <p id="status"></p>
+    <script src="popup.js"></script>
+  </body>
+</html>

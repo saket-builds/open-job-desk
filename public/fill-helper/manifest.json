@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Job Desk fill helper",
+  "version": "1.0.1",
+  "description": "Fills résumé facts on Greenhouse. Never submits.",
+  "action": {
+    "default_title": "Fill from résumé",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://*.vercel.app/*",
+    "https://job-boards.greenhouse.io/*",
+    "https://boards.greenhouse.io/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://job-boards.greenhouse.io/*",
+        "https://boards.greenhouse.io/*",
+        "http://localhost:3000/fill-harness",
+        "https://*.vercel.app/fill-harness"
+      ],
+      "js": ["fill-engine.js", "content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
