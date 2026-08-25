@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Job Desk Visual Guide Slides</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111827;
+    --ink: #f8fafc;
+    --muted: #94a3b8;
+    --blue: #38bdf8;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --line: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #020617;
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    margin: 24px auto;
+    padding: 36px 44px;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(56,189,248,.16), transparent 40%),
+      radial-gradient(circle at 88% 80%, rgba(74,222,128,.10), transparent 35%),
+      var(--bg);
+    border: 1px solid #1e293b;
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 18px;
+  }
+  .kicker {
+    font-size: 14px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 700;
+  }
+  h1 {
+    margin: 4px 0 0;
+    font-size: 42px;
+    line-height: 1.05;
+    font-weight: 800;
+  }
+  .sub { color: var(--muted); font-size: 18px; margin-top: 8px; }
+  .row { display: flex; gap: 20px; min-height: 0; }
+  .col { flex: 1; min-width: 0; }
+  .hero {
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: #020617;
+    overflow: hidden;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    max-height: 480px;
+  }
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow.vertical { flex-direction: column; align-items: stretch; }
+  .node {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .node.accent { background: #0ea5e9; color: #082f49; border-color: #38bdf8; }
+  .node.warn { background: #7f1d1d; border-color: #f87171; }
+  .arrow { color: var(--blue); font-size: 22px; font-weight: 800; }
+  .sticky {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+    max-width: 280px;
+  }
+  .sticky.green { background: #14532d; color: #bbf7d0; }
+  .sticky.red { background: #7f1d1d; color: #fecaca; }
+  .sticky.amber { background: #78350f; color: #fde68a; }
+  .sticky.blue { background: #0c4a6e; color: #bae6fd; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .mind {
+    display: grid;
+    place-items: center;
+    min-height: 360px;
+  }
+  .hub {
+    width: 160px; height: 160px; border-radius: 999px;
+    background: linear-gradient(145deg, #0ea5e9, #0369a1);
+    display: grid; place-items: center; font-weight: 800; font-size: 22px;
+    box-shadow: 0 0 0 10px rgba(56,189,248,.15);
+    z-index: 2;
+  }
+  .ring {
+    position: absolute; inset: 120px 80px 80px;
+    display: flex; justify-content: space-between; align-items: center;
+    pointer-events: none;
+  }
+  .note {
+    background: rgba(15,23,42,.85);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .pair .sticky { max-width: none; }
+  .diamond {
+    width: 140px; height: 140px; background: #7f1d1d; color: #fecaca;
+    transform: rotate(45deg); border-radius: 16px; margin: 20px auto;
+    display: grid; place-items: center; font-weight: 800;
+  }
+  .diamond span { transform: rotate(-45deg); text-align: center; font-size: 15px; }
+  .footer {
+    position: absolute; right: 44px; bottom: 28px; color: #64748b; font-size: 13px;
+  }
+  code { font-family: ui-monospace, Consolas, monospace; color: #7dd3fc; }
+</style>
+</head>
+<body>
+
+<!-- 01 -->
+<section class="slide" id="s01">
+  <header>
+    <div class="kicker">01 · Start here</div>
+    <h1>Job Desk</h1>
+    <div class="sub">Open-source personal desk for Applied AI roles — you approve, you submit.</div>
+  </header>
+  <div class="row">
+    <div class="col mind" style="position:relative">
+      <div class="hub">Job Desk</div>
+      <div style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;justify-content:center">
+        <div class="node">Discover</div><div class="arrow">→</div>
+        <div class="node">Approve</div><div class="arrow">→</div>
+        <div class="node">Fill</div><div class="arrow">→</div>
+        <div class="node accent">You Submit</div><div class="arrow">→</div>
+        <div class="node">Track</div>
+      </div>
+      <div class="note" style="margin-top:22px;max-width:520px;text-align:center">Greenhouse · Ashby · Lever</div>
+    </div>
+    <div class="stack" style="width:280px">
+      <div class="sticky green">You always click Submit yourself</div>
+      <div class="sticky red">No LinkedIn scrape · No auto-submit</div>
+    </div>
+  </div>
+  <div class="footer">Present slide 1 / 8</div>
+</section>
+
+<!-- 02 -->
+<section class="slide" id="s02">
+  <header>
+    <div class="kicker">02 · Install in 5 minutes</div>
+    <h1>Clone → run → open</h1>
+    <div class="sub">Node 20+ and Chrome. That’s it.</div>
+  </header>
+  <div class="stack">
+    <div class="flow">
+      <div class="node">git clone</div><div class="arrow">→</div>
+      <div class="node">npm install</div><div class="arrow">→</div>
+      <div class="node"><code>.env.local</code></div><div class="arrow">→</div>
+      <div class="node">npm run dev</div><div class="arrow">→</div>
+      <div class="node accent">localhost:3000</div>
+    </div>
+    <div class="row" style="align-items:stretch;height:420px">
+      <img class="hero" src="/guide-assets/terminal-dev.png" alt="terminal" />
+      <div class="stack" style="width:260px">
+        <div class="sticky amber">Need Node 20+ and Chrome</div>
+        <div class="note">github.com/wlddrick/open-job-desk</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Present slide 2 / 8</div>
+</section>
+
+<!-- 03 -->
+<section class="slide" id="s03">
+  <header>
+    <div class="kicker">03 · Your details</div>
+    <h1>Replace Jordan Lee</h1>
+    <div class="sub">Save once. Copy the fill token. Download the helper zip.</div>
+  </header>
+  <div class="row" style="height:520px">
+    <img class="hero" src="/guide-assets/desk-your-details.png" alt="your details" />
+    <div class="stack" style="width:280px">
+      <div class="node">1. Open Your details</div>
+      <div class="node">2. Replace demo packet</div>
+      <div class="node accent">3. Save → copy token</div>
+      <div class="node">4. Download zip</div>
+      <div class="sticky amber">Token unlocks facts — it does not submit forms</div>
+    </div>
+  </div>
+  <div class="footer">Present slide 3 / 8</div>
+</section>
+
+<!-- 04 -->
+<section class="slide" id="s04">
+  <header>
+    <div class="kicker">04 · Chrome fill helper</div>
+    <h1>Fill Greenhouse facts</h1>
+    <div class="sub">The dark bar fills fields. You attach the PDF and click Submit.</div>
+  </header>
+  <div class="row" style="height:520px">
+    <div class="stack" style="width:320px">
+      <div class="flow vertical">
+        <div class="node">Load unpacked</div>
+        <div class="arrow">↓</div>
+        <div class="node">Paste token + Save</div>
+        <div class="arrow">↓</div>
+        <div class="node">Open Greenhouse apply</div>
+        <div class="arrow">↓</div>
+        <div class="node accent">Fill from résumé</div>
+        <div class="arrow">↓</div>
+        <div class="node">Attach PDF</div>
+        <div class="arrow">↓</div>
+        <div class="node warn">You click Submit</div>
+      </div>
+    </div>
+    <div class="stack" style="flex:1">
+      <img class="hero" style="max-height:300px" src="/guide-assets/ext-bar.png" alt="fill bar" />
+      <img class="hero" style="max-height:160px;object-fit:contain;background:#e2e8f0" src="/guide-assets/ext-popup.png" alt="popup" />
+      <div class="sticky red">Bar vanishes? Use extension v1.0.1+ (bar re-mounts)</div>
+    </div>
+  </div>
+  <div class="footer">Present slide 4 / 8</div>
+</section>
+
+<!-- 05 -->
+<section class="slide" id="s05">
+  <header>
+    <div class="kicker">05 · Daily loop</div>
+    <h1>Find → approve → fill → track</h1>
+    <div class="sub">Paste a Greenhouse / Ashby / Lever URL anytime with Add this job.</div>
+  </header>
+  <div class="stack">
+    <div class="flow">
+      <div class="node">Find jobs</div><div class="arrow">→</div>
+      <div class="node">To review</div><div class="arrow">→</div>
+      <div class="node">Approve</div><div class="arrow">→</div>
+      <div class="node">Open posting</div><div class="arrow">→</div>
+      <div class="node accent">Fill</div><div class="arrow">→</div>
+      <div class="node">I submitted</div><div class="arrow">→</div>
+      <div class="node">Track</div>
+    </div>
+    <div class="row" style="height:420px">
+      <img class="hero" src="/guide-assets/desk-to-review.png" alt="to review" />
+      <div class="stack" style="width:260px">
+        <div class="sticky amber">Paste ATS URL with Add this job</div>
+        <div class="note">No LinkedIn links — Greenhouse, Ashby, or Lever only.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Present slide 5 / 8</div>
+</section>
+
+<!-- 06 -->
+<section class="slide" id="s06">
+  <header>
+    <div class="kicker">06 · How it works</div>
+    <h1>Architecture at a glance</h1>
+    <div class="sub">Discovery filters keep India + open remote; drop onsite-abroad barriers.</div>
+  </header>
+  <div class="row" style="align-items:center;height:520px">
+    <div class="flow" style="flex:1;justify-content:center">
+      <div class="node">Portals</div><div class="arrow">→</div>
+      <div class="node">Scan + filters</div><div class="arrow">→</div>
+      <div class="node">Lanes</div><div class="arrow">→</div>
+      <div class="node">Packet</div><div class="arrow">→</div>
+      <div class="node">Chrome helper</div><div class="arrow">→</div>
+      <div class="node accent">Greenhouse</div>
+    </div>
+    <div class="stack" style="width:280px">
+      <div class="sticky green">Keep India + open remote</div>
+      <div class="sticky red">Drop onsite-abroad + US/UK/EU residency rules</div>
+    </div>
+  </div>
+  <div class="footer">Present slide 6 / 8</div>
+</section>
+
+<!-- 07 -->
+<section class="slide" id="s07">
+  <header>
+    <div class="kicker">07 · Stuck? Fix it</div>
+    <h1>Four quick fixes</h1>
+    <div class="sub">Problem → fix. No rabbit holes.</div>
+  </header>
+  <div class="row" style="height:520px">
+    <div class="pair" style="flex:1">
+      <div class="sticky red">Invalid fill token</div>
+      <div class="sticky green">Recopy from Your details → Save in extension</div>
+      <div class="sticky red">No dark bar</div>
+      <div class="sticky green">Must be job-boards / boards.greenhouse.io</div>
+      <div class="sticky red">Bar vanishes</div>
+      <div class="sticky green">Reload fill helper v1.0.1+</div>
+      <div class="sticky red">Filled 0 fields</div>
+      <div class="sticky green">Scroll to form → Fill again</div>
+    </div>
+    <div style="width:220px;display:grid;place-items:center">
+      <div class="diamond"><span>Bar<br/>gone?</span></div>
+      <div class="node accent" style="margin-top:8px">→ v1.0.1+</div>
+    </div>
+  </div>
+  <div class="footer">Present slide 7 / 8</div>
+</section>
+
+<!-- 08 -->
+<section class="slide" id="s08">
+  <header>
+    <div class="kicker">08 · Links + credits</div>
+    <h1>Fork → replace → apply</h1>
+    <div class="sub">MIT license. Demo packet is fictional Jordan Lee.</div>
+  </header>
+  <div class="row" style="height:520px;align-items:stretch">
+    <div class="note" style="flex:1;font-size:22px;display:flex;flex-direction:column;justify-content:center;gap:18px">
+      <div><strong>GitHub</strong><br/><code>https://github.com/wlddrick/open-job-desk</code></div>
+      <div><strong>Credits</strong> · CREDITS.md &nbsp;|&nbsp; <strong>License</strong> · MIT</div>
+      <div class="sub">Guide twin on GitHub: docs/GUIDE.md</div>
+    </div>
+    <div class="sticky blue" style="max-width:420px;font-size:17px;line-height:1.45">
+      Instagram DM template<br/><br/>
+      Here's Job Desk — open-source personal job desk (scan AI roles, approve, fill Greenhouse; you always submit yourself).<br/><br/>
+      Guide: &lt;this Present share URL&gt;<br/>
+      GitHub: https://github.com/wlddrick/open-job-desk
+    </div>
+  </div>
+  <div class="footer">Present slide 8 / 8</div>
+</section>
+
+</body>
+</html>

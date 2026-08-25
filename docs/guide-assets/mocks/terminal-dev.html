@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>terminal</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0b1220;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      .term {
+        width: 720px;
+        background: #020617;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+      .chrome {
+        background: #1e293b;
+        padding: 10px 14px;
+        color: #94a3b8;
+        font-size: 12px;
+      }
+      .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+      pre {
+        margin: 0;
+        padding: 18px;
+        color: #e2e8f0;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      .g {
+        color: #4ade80;
+      }
+      .b {
+        color: #38bdf8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="term">
+      <div class="chrome">
+        <span class="dot" style="background: #f87171"></span>
+        <span class="dot" style="background: #fbbf24"></span>
+        <span class="dot" style="background: #4ade80"></span>
+        powershell — open-job-desk
+      </div>
+      <pre>
+<span class="b">PS</span> open-job-desk&gt; npm run dev
+
+<span class="g">▲ Next.js 15</span>
+- Local:        http://localhost:3000
+- Network:      http://192.168.1.10:3000
+
+✓ Ready in 1.8s
+      </pre>
+    </div>
+  </body>
+</html>

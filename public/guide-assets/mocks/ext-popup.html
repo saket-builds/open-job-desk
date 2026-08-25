@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Fill from résumé</title>
+    <style>
+      body {
+        font: 14px/1.45 system-ui, sans-serif;
+        width: 320px;
+        margin: 24px auto;
+        padding: 14px;
+        color: #0f172a;
+        background: #e2e8f0;
+      }
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      }
+      h1 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 10px 0 4px;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+      }
+      button {
+        margin-top: 12px;
+        width: 100%;
+        border: 0;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        padding: 8px;
+      }
+      p {
+        font-size: 12px;
+        color: #475569;
+        margin: 0 0 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Fill from résumé</h1>
+      <p>Connects to your Job Desk. Never clicks Submit.</p>
+      <label>Job desk URL</label>
+      <input value="http://localhost:3000" readonly />
+      <label>Fill token</label>
+      <input value="demo-fill-token-REDACTED" readonly />
+      <button>Save</button>
+    </div>
+  </body>
+</html>
